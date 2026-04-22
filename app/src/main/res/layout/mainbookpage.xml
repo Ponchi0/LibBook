@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools">
+    
+    <ScrollView
+        android:id="@+id/scrollContent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomAppBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/contentRoot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+            <ImageView
+                android:id="@+id/mbpimgCover"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:scaleType="centerCrop"
+                android:src="@android:drawable/sym_def_app_icon"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintDimensionRatio="H,4:3"/>
+
+            <LinearLayout
+                android:id="@+id/topButtonsRow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="16dp"
+                app:layout_constraintTop_toBottomOf="@id/mbpimgCover"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_weight="1">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/mbpbtnAddBookmark"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="В закладки"
+                        android:textColor="@color/black"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/mbpbtnRead"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Читать"
+                    android:textColor="@color/black"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvDescription"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Краткое описание книги. Этот текст разворачивается по нажатию на кнопку Ещё."
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                android:maxLines="3"
+                android:ellipsize="end"
+                app:layout_constraintTop_toBottomOf="@id/topButtonsRow"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/mbpbtnDescriptionMore"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Ещё"
+                android:textColor="@color/black"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                app:layout_constraintTop_toBottomOf="@id/tvDescription"
+                app:layout_constraintStart_toStartOf="@id/tvDescription" />
+
+            <TextView
+                android:id="@+id/mbptvTags"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Теги: фантастика, приключения, драма, классика, романтика..."
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                android:maxLines="2"
+                android:ellipsize="end"
+                app:layout_constraintTop_toBottomOf="@id/mbpbtnDescriptionMore"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/mbpbtnTagsMore"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Ещё"
+                android:textColor="@color/black"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                app:layout_constraintTop_toBottomOf="@id/mbptvTags"
+                app:layout_constraintStart_toStartOf="@id/mbptvTags" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+    <com.google.android.material.bottomappbar.BottomAppBar
+        android:id="@+id/bottomAppBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:fabCradleMargin="0dp"
+        app:fabCradleRoundedCornerRadius="0dp"
+        app:fabCradleVerticalOffset="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="BottomAppBar">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_mbpMarkbooks"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.4"
+                android:text="Закладки (открыть)"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:textColor="@color/black"
+                app:icon="@android:drawable/btn_star_big_off"
+                app:iconGravity="textTop"
+                app:iconPadding="4dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_mbpCatalog"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.2"
+                android:text="Каталог"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:textColor="@color/black"
+                app:icon="@android:drawable/ic_menu_sort_by_size"
+                app:iconGravity="textTop"
+                app:iconPadding="4dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_mbpMainMenu"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.2"
+                android:text="Главная"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:textColor="@color/black"
+                app:icon="@android:drawable/ic_menu_manage"
+                app:iconGravity="textTop"
+                app:iconPadding="4dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_mbpGeneral"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.2"
+                android:text="Общее"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:textColor="@color/black"
+                app:icon="@android:drawable/ic_menu_info_details"
+                app:iconGravity="textTop"
+                app:iconPadding="4dp" />
+        </LinearLayout>
+    </com.google.android.material.bottomappbar.BottomAppBar>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

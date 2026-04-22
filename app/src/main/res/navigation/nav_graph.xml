@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/mainMenuFragment">
+
+    <fragment
+        android:id="@+id/mainMenuFragment"
+        android:name="com.example.samsungproject.Fragment.MainMenuFragment"
+        android:label="Main menu">
+        <action
+            android:id="@+id/action_mainMenuFragment_to_markbooksFragment"
+            app:destination="@id/markbooksFragment" />
+        <action
+            android:id="@+id/action_mainMenuFragment_to_catalogFragment"
+            app:destination="@id/catalogFragment" />
+        <action
+            android:id="@+id/action_mainMenuFragment_to_generalFragment"
+            app:destination="@id/generalFragment" />
+        <action
+            android:id="@+id/action_mainMenuFragment_to_infoFragment"
+            app:destination="@id/infoFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/bookPageFragment"
+        android:name="com.example.samsungproject.Fragment.BookPageFragment"
+        android:label="Book page">
+        <action
+            android:id="@+id/action_bookPageFragment_to_mainBookPageFragment"
+            app:destination="@id/mainBookPageFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/mainBookPageFragment"
+        android:name="com.example.samsungproject.Fragment.MainBookPageFragment"
+        android:label="Main book page">
+        <action
+            android:id="@+id/action_mainBookPageFragment_to_markbooksFragment"
+            app:destination="@id/markbooksFragment" />
+        <action
+            android:id="@+id/action_mainBookPageFragment_to_catalogFragment"
+            app:destination="@id/catalogFragment" />
+        <action
+            android:id="@+id/action_mainBookPageFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment" />
+        <action
+            android:id="@+id/action_mainBookPageFragment_to_generalFragment"
+            app:destination="@id/generalFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/markbooksFragment"
+        android:name="com.example.samsungproject.Fragment.MarkbooksFragment"
+        android:label="Markbooks">
+        <action
+            android:id="@+id/action_markbooksFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment"
+            app:popUpTo="@id/mainMenuFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_markbooksFragment_to_catalogFragment"
+            app:destination="@id/catalogFragment" />
+        <action
+            android:id="@+id/action_markbooksFragment_to_generalFragment"
+            app:destination="@id/generalFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/catalogFragment"
+        android:name="com.example.samsungproject.Fragment.CatalogFragment"
+        android:label="Catalog">
+        <action
+            android:id="@+id/action_catalogFragment_to_markbooksFragment"
+            app:destination="@id/markbooksFragment" />
+        <action
+            android:id="@+id/action_catalogFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment" />
+        <action
+            android:id="@+id/action_catalogFragment_to_generalFragment"
+            app:destination="@id/generalFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/generalFragment"
+        android:name="com.example.samsungproject.Fragment.GeneralFragment"
+        android:label="General">
+        <action
+            android:id="@+id/action_generalFragment_to_markbooksFragment"
+            app:destination="@id/markbooksFragment" />
+        <action
+            android:id="@+id/action_generalFragment_to_catalogFragment"
+            app:destination="@id/catalogFragment" />
+        <action
+            android:id="@+id/action_generalFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment" />
+        <action
+            android:id="@+id/action_generalFragment_to_infoFragment"
+            app:destination="@id/infoFragment" />
+        <action
+            android:id="@+id/action_generalFragment_to_notificationsFragment"
+            app:destination="@id/notificationsFragment" />
+        <action
+            android:id="@+id/action_generalFragment_to_qaFragment"
+            app:destination="@id/qaFragment" />
+        <action
+            android:id="@+id/action_generalFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/infoFragment"
+        android:name="com.example.samsungproject.Fragment.InfoFragment"
+        android:label="Info">
+        <action
+            android:id="@+id/action_infoFragment_to_generalFragment"
+            app:destination="@id/generalFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/notificationsFragment"
+        android:name="com.example.samsungproject.Fragment.NotificationsFragment"
+        android:label="Notifications">
+        <action
+            android:id="@+id/action_notificationsFragment_to_generalFragment"
+            app:destination="@id/generalFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/qaFragment"
+        android:name="com.example.samsungproject.Fragment.QaFragment"
+        android:label="QA">
+        <action
+            android:id="@+id/action_qaFragment_to_generalFragment"
+            app:destination="@id/generalFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.samsungproject.Fragment.SettingsFragment"
+        android:label="Settings">
+        <action
+            android:id="@+id/action_settingsFragment_to_enterChangeEmailDialogFragment"
+            app:destination="@id/enterChangeEmailDialogFragment" />
+    </fragment>
+
+    <dialog
+        android:id="@+id/enterChangeEmailDialogFragment"
+        android:name="com.example.samsungproject.Fragment.EnterChangeEmailDialogFragment"
+        android:label="Enter change email">
+        <argument
+            android:name="mode"
+            app:argType="string"
+            android:defaultValue="email" />
+        <action
+            android:id="@+id/action_enterChangeEmailDialogFragment_to_changeEmailConfNewDialogFragment"
+            app:destination="@id/changeEmailConfNewDialogFragment" />
+    </dialog>
+
+    <dialog
+        android:id="@+id/changeEmailConfNewDialogFragment"
+        android:name="com.example.samsungproject.Fragment.ChangeEmailConfNewDialogFragment"
+        android:label="Confirm email code">
+        <argument
+            android:name="mode"
+            app:argType="string"
+            android:defaultValue="email" />
+    </dialog>
+
+</navigation>
+
