@@ -12,8 +12,11 @@ public class Book {
     @Nullable private String name;
     @Nullable private byte[] icon;
     @Nullable private String description;
-    private final List<String> tags;
+    private String[] tags;
 
+    /**
+     * Создаёт объект книги с переданными полями.
+     */
     public Book(
             long id,
             @Nullable String password,
@@ -27,74 +30,122 @@ public class Book {
         this.name = name;
         this.icon = (icon != null) ? Arrays.copyOf(icon, icon.length) : null;
         this.description = description;
-        this.tags = (tags != null) ? new ArrayList<>(tags) : new ArrayList<>();
+        this.tags = normalizeTags(tags);
     }
 
+    /**
+     * Возвращает идентификатор книги.
+     */
     public long getId() {
         return id;
     }
 
+    /**
+     * Возвращает пароль книги (может быть null).
+     */
     @Nullable
     public String getPassword() {
         return password;
     }
 
+    /**
+     * Возвращает название книги (может быть null).
+     */
     @Nullable
     public String getName() {
         return name;
     }
 
+    /**
+     * Возвращает копию байтов иконки книги (может быть null).
+     */
     @Nullable
     public byte[] getIcon() {
         return (icon != null) ? Arrays.copyOf(icon, icon.length) : null;
     }
 
+    /**
+     * Возвращает описание книги (может быть null).
+     */
     @Nullable
     public String getDescription() {
         return description;
     }
 
-    public List<String> getTags() {
-        return new ArrayList<>(tags);
+    /**
+     * Возвращает копию массива названий тегов.
+     */
+    public String[] getTags() {
+        return Arrays.copyOf(tags, tags.length);
     }
 
+    /**
+     * Изменяет название книги.
+     */
     public void changeName(@Nullable String newName) {
         this.name = newName;
     }
 
+    /**
+     * Изменяет иконку книги (сохраняет защитную копию байтов).
+     */
     public void changeIcon(@Nullable byte[] newIcon) {
         this.icon = (newIcon != null) ? Arrays.copyOf(newIcon, newIcon.length) : null;
     }
 
+    /**
+     * Изменяет описание книги.
+     */
     public void changeDescription(@Nullable String newDescription) {
         this.description = newDescription;
     }
 
+    /**
+     * Обновляет теги: удаляет и добавляет элементы за один вызов.
+     */
     public void changeTags(@Nullable List<String> tagsToAdd, @Nullable List<String> tagsToRemove) {
+        ArrayList<String> cur = new ArrayList<>(Arrays.asList(this.tags));
+
         if (tagsToRemove != null) {
             for (String tag : tagsToRemove) {
-                if (tag != null) {
-                    while (this.tags.remove(tag)) {
-                    }
+                if (tag == null) continue;
+                String t = tag.trim();
+                if (t.isEmpty()) continue;
+                while (cur.remove(t)) {
                 }
             }
         }
+
         if (tagsToAdd != null) {
             for (String tag : tagsToAdd) {
-                if (tag != null && !this.tags.contains(tag)) {
-                    this.tags.add(tag);
-                }
+                if (tag == null) continue;
+                String t = tag.trim();
+                if (t.isEmpty() || cur.contains(t)) continue;
+                cur.add(t);
             }
         }
+
+        this.tags = normalizeTags(cur);
     }
+
+    /**
+     * Полностью заменяет список тегов.
+     */
     public void changeTags(@Nullable List<String> newTags) {
-        this.tags.clear();
-        if (newTags != null) {
-            for (String tag : newTags) {
-                if (tag != null && !this.tags.contains(tag)) {
-                    this.tags.add(tag);
-                }
-            }
+        this.tags = normalizeTags(newTags);
+    }
+
+    private static String[] normalizeTags(@Nullable List<String> tags) {
+        if (tags == null || tags.isEmpty()) {
+            return new String[0];
         }
+        ArrayList<String> out = new ArrayList<>();
+        for (String t : tags) {
+            if (t == null) continue;
+            String s = t.trim();
+            if (s.isEmpty() || out.contains(s)) continue;
+            out.add(s);
+        }
+        return out.toArray(new String[0]);
     }
 }

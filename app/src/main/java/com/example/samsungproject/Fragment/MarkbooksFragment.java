@@ -12,11 +12,17 @@ import com.example.samsungproject.R;
 import com.google.android.material.button.MaterialButton;
 
 public class MarkbooksFragment extends Fragment {
+    /**
+     * Создаёт фрагмент закладок и привязывает разметку экрана.
+     */
     public MarkbooksFragment() {
         super(R.layout.activity_markbooks);
 
     }
 
+    /**
+     * Настраивает обработчики нажатий и навигацию по кнопкам экрана закладок.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);

@@ -21,16 +21,25 @@ public class ChangeEmailConfNewDialogFragment extends DialogFragment {
 
     private static final String KEY_STEP = "enterchange_step";
 
+    /**
+     * Создаёт диалог подтверждения (экран с вводом кода) и привязывает разметку.
+     */
     public ChangeEmailConfNewDialogFragment() {
         super(R.layout.changeemailconfnew);
     }
 
+    /**
+     * Настраивает стиль диалога (без заголовка).
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setStyle(STYLE_NO_TITLE, 0);
     }
 
+    /**
+     * Делает диалог полноэкранным и задаёт прозрачный фон окна.
+     */
     @Override
     public void onStart() {
         super.onStart();
@@ -41,6 +50,9 @@ public class ChangeEmailConfNewDialogFragment extends DialogFragment {
         }
     }
 
+    /**
+     * Настраивает затемнение фона, тексты/поле ввода и обработчик подтверждения кода (смена email).
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -74,4 +86,3 @@ public class ChangeEmailConfNewDialogFragment extends DialogFragment {
         });
     }
 }
-

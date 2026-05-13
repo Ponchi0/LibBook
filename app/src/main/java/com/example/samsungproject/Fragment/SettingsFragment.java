@@ -17,10 +17,16 @@ public class SettingsFragment extends Fragment {
     private static final String MODE_PASSWORD = "password";
     private static final String MODE_NAME = "name";
 
+    /**
+     * Создаёт фрагмент настроек и привязывает разметку экрана.
+     */
     public SettingsFragment() {
         super(R.layout.settings);
     }
 
+    /**
+     * Настраивает кнопки настроек и запускает нужные диалоги/экраны через Navigation.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -51,6 +57,11 @@ public class SettingsFragment extends Fragment {
             NavHostFragment.findNavController(this)
                     .navigate(R.id.action_settingsFragment_to_enterChangeEmailDialogFragment, args);
         });
+
+        MaterialButton btnChangePicture = view.findViewById(R.id.btnChangePicture);
+        btnChangePicture.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(R.id.action_settingsFragment_to_uploadImageFragment));
     }
 }
 

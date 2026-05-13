@@ -12,9 +12,16 @@ import com.example.samsungproject.R;
 import com.google.android.material.button.MaterialButton;
 
 public class MainMenuFragment extends Fragment {
+    /**
+     * Создаёт фрагмент главного меню и привязывает разметку экрана.
+     */
     public MainMenuFragment() {
         super(R.layout.activity_mainmenu);
     }
+
+    /**
+     * Настраивает обработчики нажатий и навигацию по кнопкам главного меню.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);

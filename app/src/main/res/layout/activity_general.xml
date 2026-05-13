@@ -12,7 +12,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:contentDescription="User avatar"
-        android:src="@android:drawable/sym_def_app_icon"
+        android:src="@drawable/icon_null"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
     <TextView
@@ -28,7 +28,7 @@
         app:layout_constraintTop_toTopOf="@id/imgUser"
         app:layout_constraintBottom_toBottomOf="@id/imgUser"
         app:layout_constraintEnd_toEndOf="parent"
-        android:text="aaaaa"
+        android:text="@string/name_null"
         />
     <LinearLayout
         android:id="@+id/actionsColumn"
@@ -44,6 +44,20 @@
         app:layout_constraintBottom_toTopOf="@id/bottomAppBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddBook"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Добавить книгу"
+            android:textColor="@color/black"
+            android:gravity="start|center_vertical"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            app:icon="@drawable/ic_plus"
+            app:iconTint="?attr/colorOnSurface"
+            app:iconGravity="textStart"
+            app:iconPadding="12dp" />
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_Info"
             style="@style/Widget.MaterialComponents.Button.TextButton"
