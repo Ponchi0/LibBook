@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="book_tags">
+        <item>Фантастика</item>
+        <item>Детектив</item>
+        <item>Роман</item>
+        <item>Наука</item>
+        <item>Бизнес</item>
+    </string-array>
+</resources>
