@@ -12,7 +12,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnAddBookBack"
-        style="@style/Widget.MaterialComponents.Button.TextButton"
+        style="@style/Widget.App.MaterialButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:insetTop="0dp"
@@ -21,7 +21,7 @@
         app:icon="@drawable/ic_arrow_back"
         app:iconGravity="textStart"
         app:iconPadding="4dp"
-        app:iconTint="?attr/colorOnSurface"
+        app:iconTint="@color/text_primary"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/add_book_title"
-        android:textColor="@color/black"
+        android:textColor="@color/text_primary"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@id/btnAddBookBack"
@@ -53,7 +53,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnAddBookConfirm"
-        style="@style/Widget.MaterialComponents.Button"
+        style="@style/Widget.App.MaterialButton.Filled"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/add_book_confirm"

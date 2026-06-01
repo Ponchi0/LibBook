@@ -15,7 +15,14 @@ public class Book {
     private String[] tags;
 
     /**
-     * Создаёт объект книги с переданными полями.
+     * Создаёт объект книги с указанными полями.
+     *
+     * @param id          идентификатор книги
+     * @param password    пароль доступа к книге
+     * @param name        название
+     * @param icon        байты обложки
+     * @param description описание
+     * @param tags        список тегов
      */
     public Book(
             long id,
@@ -35,13 +42,17 @@ public class Book {
 
     /**
      * Возвращает идентификатор книги.
+     *
+     * @return идентификатор
      */
     public long getId() {
         return id;
     }
 
     /**
-     * Возвращает пароль книги (может быть null).
+     * Возвращает пароль доступа к книге.
+     *
+     * @return пароль или {@code null}
      */
     @Nullable
     public String getPassword() {
@@ -49,7 +60,9 @@ public class Book {
     }
 
     /**
-     * Возвращает название книги (может быть null).
+     * Возвращает название книги.
+     *
+     * @return название или {@code null}
      */
     @Nullable
     public String getName() {
@@ -57,7 +70,9 @@ public class Book {
     }
 
     /**
-     * Возвращает копию байтов иконки книги (может быть null).
+     * Возвращает копию байтов обложки книги.
+     *
+     * @return байты изображения или {@code null}
      */
     @Nullable
     public byte[] getIcon() {
@@ -65,7 +80,9 @@ public class Book {
     }
 
     /**
-     * Возвращает описание книги (может быть null).
+     * Возвращает описание книги.
+     *
+     * @return описание или {@code null}
      */
     @Nullable
     public String getDescription() {
@@ -73,7 +90,9 @@ public class Book {
     }
 
     /**
-     * Возвращает копию массива названий тегов.
+     * Возвращает копию массива тегов книги.
+     *
+     * @return массив тегов
      */
     public String[] getTags() {
         return Arrays.copyOf(tags, tags.length);
@@ -81,13 +100,17 @@ public class Book {
 
     /**
      * Изменяет название книги.
+     *
+     * @param newName новое название
      */
     public void changeName(@Nullable String newName) {
         this.name = newName;
     }
 
     /**
-     * Изменяет иконку книги (сохраняет защитную копию байтов).
+     * Изменяет обложку книги.
+     *
+     * @param newIcon новые байты изображения
      */
     public void changeIcon(@Nullable byte[] newIcon) {
         this.icon = (newIcon != null) ? Arrays.copyOf(newIcon, newIcon.length) : null;
@@ -95,13 +118,18 @@ public class Book {
 
     /**
      * Изменяет описание книги.
+     *
+     * @param newDescription новое описание
      */
     public void changeDescription(@Nullable String newDescription) {
         this.description = newDescription;
     }
 
     /**
-     * Обновляет теги: удаляет и добавляет элементы за один вызов.
+     * Добавляет и удаляет теги из текущего списка.
+     *
+     * @param tagsToAdd    теги для добавления
+     * @param tagsToRemove теги для удаления
      */
     public void changeTags(@Nullable List<String> tagsToAdd, @Nullable List<String> tagsToRemove) {
         ArrayList<String> cur = new ArrayList<>(Arrays.asList(this.tags));
@@ -129,12 +157,20 @@ public class Book {
     }
 
     /**
-     * Полностью заменяет список тегов.
+     * Полностью заменяет список тегов книги.
+     *
+     * @param newTags новый список тегов
      */
     public void changeTags(@Nullable List<String> newTags) {
         this.tags = normalizeTags(newTags);
     }
 
+    /**
+     * Нормализует список тегов: обрезает пробелы, убирает пустые и дубликаты.
+     *
+     * @param tags исходный список тегов
+     * @return массив нормализованных тегов
+     */
     private static String[] normalizeTags(@Nullable List<String> tags) {
         if (tags == null || tags.isEmpty()) {
             return new String[0];

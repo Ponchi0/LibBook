@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Widget.App.MaterialButton" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">@color/button_text_black</item>
+        <item name="iconTint">@color/icon_primary</item>
+        <item name="rippleColor">@color/icon_primary</item>
+    </style>
+
+    <style name="Widget.App.MaterialButton.Outlined" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:textColor">@color/button_text_black</item>
+        <item name="iconTint">@color/icon_primary</item>
+        <item name="strokeColor">@color/stroke_primary</item>
+        <item name="rippleColor">@color/icon_primary</item>
+    </style>
+
+    <style name="Widget.App.MaterialButton.Filled" parent="Widget.MaterialComponents.Button">
+        <item name="android:textColor">@color/button_text_black</item>
+        <item name="iconTint">@color/icon_primary</item>
+        <item name="backgroundTint">@color/surface_elevated</item>
+        <item name="rippleColor">@color/icon_primary</item>
+    </style>
+
+    <style name="Widget.App.TextInputLayout.OutlinedBox" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="android:textColorHint">#99FFFFFF</item>
+        <item name="hintTextColor">@color/text_primary</item>
+        <item name="boxStrokeColor">@color/stroke_primary</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="errorTextColor">@color/text_primary</item>
+        <item name="counterTextColor">@color/text_primary</item>
+        <item name="helperTextTextColor">@color/text_primary</item>
+        <item name="placeholderTextColor">@color/text_primary</item>
+    </style>
+
+    <style name="Widget.App.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="android:textColorHint">#99FFFFFF</item>
+        <item name="hintTextColor">@color/text_primary</item>
+        <item name="boxStrokeColor">@color/stroke_primary</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="errorTextColor">@color/text_primary</item>
+    </style>
+
+    <style name="ThemeOverlay.App.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_primary</item>
+        <item name="buttonBarButtonStyle">@style/Widget.App.MaterialButton</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.App.MaterialButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.App.MaterialButton</item>
+    </style>
+
+</resources>

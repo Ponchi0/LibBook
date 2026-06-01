@@ -5,6 +5,8 @@
     android:name="androidx.navigation.fragment.NavHostFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingTop="@dimen/screen_bar_inset_top"
+    android:paddingBottom="@dimen/screen_bar_inset_bottom"
     app:defaultNavHost="true"
     app:navGraph="@navigation/nav_graph"
     />

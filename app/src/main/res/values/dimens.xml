@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="screen_bar_inset_top">15dp</dimen>
+    <dimen name="screen_bar_inset_bottom">15dp</dimen>
+    <dimen name="top_app_bar_height">66dp</dimen>
+    <dimen name="bottom_app_bar_height">70dp</dimen>
+</resources>

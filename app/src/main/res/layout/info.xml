@@ -6,29 +6,34 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="12dp">
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnBackInfo"
-        style="@style/Widget.MaterialComponents.Button.TextButton"
+        style="@style/Widget.App.MaterialButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Назад"
-        android:textColor="@color/black"
+        android:textColor="@color/text_primary"
         android:textSize="14sp"
         android:insetTop="0dp"
         android:insetBottom="0dp"
         app:icon="@android:drawable/ic_media_previous"
-        app:iconTint="?attr/colorOnSurface"
+        app:iconTint="@color/text_primary"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-    <ImageView
+
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imgUser"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_marginTop="12dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
         android:contentDescription="User icon"
+        android:scaleType="centerCrop"
         android:src="@drawable/icon_null"
         app:layout_constraintTop_toBottomOf="@id/btnBackInfo"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.UserAvatar" />
+
     <TextView
         android:id="@+id/txtUserName"
         android:layout_width="0dp"
@@ -36,55 +41,190 @@
         android:layout_marginStart="12dp"
         android:layout_marginEnd="8dp"
         android:text="@string/name_null"
-        android:textColor="@color/black"
-        android:textSize="18sp"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintStart_toEndOf="@id/imgUser"
         app:layout_constraintTop_toTopOf="@id/imgUser"
         app:layout_constraintBottom_toBottomOf="@id/imgUser"
         app:layout_constraintEnd_toEndOf="parent"
         tools:text="Иван Иванов" />
-    <LinearLayout
-        android:id="@+id/infoColumn"
+
+    <TextView
+        android:id="@+id/txtEmail"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="12dp"
-        android:orientation="vertical"
-        app:layout_constrainedHeight="true"
-        app:layout_constraintBottom_toTopOf="@id/authButtonsContainer"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/imgUser"
-        app:layout_constraintTop_toBottomOf="@id/imgUser">
-        <TextView
-            android:id="@+id/txtEmail"
+        app:layout_constraintTop_toBottomOf="@id/imgUser"
+        tools:text="Email: ivan@mail.com" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/infoHelpScroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@id/authButtonsContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txtEmail">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Email: example@mail.com"
-            android:textColor="@color/black"
-            android:textSize="14sp"
-            tools:text="Email: ivan@mail.com" />
-        <TextView
-            android:id="@+id/txtPhone"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="Phone: +7 900 000-00-00"
-            android:textColor="@color/black"
-            android:textSize="14sp"
-            tools:text="Phone: +7 900 123-45-67" />
+            android:orientation="vertical"
+            android:paddingBottom="8dp">
 
-        <TextView
-            android:id="@+id/txtAbout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="About: ..."
-            android:textColor="@color/black"
-            android:textSize="14sp"
-            tools:text="О себе: " />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/info_help_title_readers"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/info_help_readers_registration_title"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
-    </LinearLayout>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/info_help_readers_registration"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/info_help_readers_tips_title"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/info_help_readers_tips"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/info_help_readers_bookmarks_title"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/info_help_readers_bookmarks"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/info_help_readers_catalog_title"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/info_help_readers_catalog"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/info_help_title_authors"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/info_help_authors_add_title"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/info_help_authors_add"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/info_help_authors_tips_title"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/info_help_authors_tips"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/info_help_authors_delete_title"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/info_help_authors_delete"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <LinearLayout
         android:id="@+id/authButtonsContainer"
@@ -103,7 +243,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRegistration"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.App.MaterialButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="4dp"
@@ -114,7 +254,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSignIn"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.App.MaterialButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:insetTop="0dp"
@@ -124,8 +264,21 @@
         </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDeleteAccount"
+            style="@style/Widget.App.MaterialButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:text="Удалить аккаунт"
+            android:textSize="16sp"
+            android:textColor="@color/delete_account_red"
+            android:visibility="gone" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLogout"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
+            style="@style/Widget.App.MaterialButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:insetTop="0dp"

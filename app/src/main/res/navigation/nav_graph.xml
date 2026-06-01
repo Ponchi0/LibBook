@@ -20,6 +20,9 @@
         <action
             android:id="@+id/action_mainMenuFragment_to_infoFragment"
             app:destination="@id/infoFragment" />
+        <action
+            android:id="@+id/action_mainMenuFragment_to_mainBookPageFragment"
+            app:destination="@id/mainBookPageFragment" />
     </fragment>
 
     <fragment
@@ -29,7 +32,7 @@
         <argument
             android:name="bookId"
             app:argType="long"
-            android:defaultValue="-1" />
+            android:defaultValue="-1L" />
         <action
             android:id="@+id/action_bookPageFragment_to_mainBookPageFragment"
             app:destination="@id/mainBookPageFragment" />
@@ -42,7 +45,7 @@
         <argument
             android:name="bookId"
             app:argType="long"
-            android:defaultValue="-1" />
+            android:defaultValue="-1L" />
         <action
             android:id="@+id/action_mainBookPageFragment_to_markbooksFragment"
             app:destination="@id/markbooksFragment" />
@@ -75,6 +78,9 @@
         <action
             android:id="@+id/action_markbooksFragment_to_generalFragment"
             app:destination="@id/generalFragment" />
+        <action
+            android:id="@+id/action_markbooksFragment_to_mainBookPageFragment"
+            app:destination="@id/mainBookPageFragment" />
     </fragment>
 
     <fragment
@@ -112,18 +118,65 @@
             android:id="@+id/action_generalFragment_to_infoFragment"
             app:destination="@id/infoFragment" />
         <action
-            android:id="@+id/action_generalFragment_to_notificationsFragment"
-            app:destination="@id/notificationsFragment" />
-        <action
-            android:id="@+id/action_generalFragment_to_qaFragment"
-            app:destination="@id/qaFragment" />
-        <action
             android:id="@+id/action_generalFragment_to_settingsFragment"
             app:destination="@id/settingsFragment" />
         <action
             android:id="@+id/action_generalFragment_to_addBookFragment"
             app:destination="@id/addBookFragment" />
+        <action
+            android:id="@+id/action_generalFragment_to_deleteBookDialogFragment"
+            app:destination="@id/deleteBookDialogFragment" />
+        <action
+            android:id="@+id/action_generalFragment_to_editBookListDialogFragment"
+            app:destination="@id/editBookListDialogFragment" />
+        <action
+            android:id="@+id/action_generalFragment_to_registrationFragment"
+            app:destination="@id/registrationFragment" />
+        <action
+            android:id="@+id/action_generalFragment_to_authorizationFragment"
+            app:destination="@id/authorizationFragment" />
     </fragment>
+
+    <dialog
+        android:id="@+id/deleteBookDialogFragment"
+        android:name="com.example.samsungproject.Fragment.DeleteBookDialogFragment"
+        android:label="Delete book">
+        <argument
+            android:name="userId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </dialog>
+
+    <dialog
+        android:id="@+id/editBookListDialogFragment"
+        android:name="com.example.samsungproject.Fragment.EditBookListDialogFragment"
+        android:label="Edit book list">
+        <argument
+            android:name="userId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <action
+            android:id="@+id/action_editBookListDialogFragment_to_editBookFormDialogFragment"
+            app:destination="@id/editBookFormDialogFragment" />
+    </dialog>
+
+    <dialog
+        android:id="@+id/editBookFormDialogFragment"
+        android:name="com.example.samsungproject.Fragment.EditBookFormDialogFragment"
+        android:label="Edit book">
+        <argument
+            android:name="userId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <argument
+            android:name="bookId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <argument
+            android:name="bookName"
+            app:argType="string"
+            android:defaultValue="" />
+    </dialog>
 
     <fragment
         android:id="@+id/addBookFragment"
@@ -149,7 +202,15 @@
         <action
             android:id="@+id/action_infoFragment_to_authorizationFragment"
             app:destination="@id/authorizationFragment" />
+        <action
+            android:id="@+id/action_infoFragment_to_deleteAccountDialogFragment"
+            app:destination="@id/deleteAccountDialogFragment" />
     </fragment>
+
+    <dialog
+        android:id="@+id/deleteAccountDialogFragment"
+        android:name="com.example.samsungproject.Fragment.DeleteAccountDialogFragment"
+        android:label="Delete account" />
 
     <fragment
         android:id="@+id/registrationFragment"
@@ -160,24 +221,6 @@
         android:id="@+id/authorizationFragment"
         android:name="com.example.samsungproject.Fragment.AuthorizationFragment"
         android:label="Authorization" />
-
-    <fragment
-        android:id="@+id/notificationsFragment"
-        android:name="com.example.samsungproject.Fragment.NotificationsFragment"
-        android:label="Notifications">
-        <action
-            android:id="@+id/action_notificationsFragment_to_generalFragment"
-            app:destination="@id/generalFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/qaFragment"
-        android:name="com.example.samsungproject.Fragment.QaFragment"
-        android:label="QA">
-        <action
-            android:id="@+id/action_qaFragment_to_generalFragment"
-            app:destination="@id/generalFragment" />
-    </fragment>
 
     <fragment
         android:id="@+id/settingsFragment"
@@ -191,7 +234,7 @@
             app:destination="@id/uploadImageFragment" />
     </fragment>
 
-    <fragment
+    <dialog
         android:id="@+id/uploadImageFragment"
         android:name="com.example.samsungproject.Fragment.UploadImageFragment"
         android:label="Upload image" />
@@ -204,24 +247,6 @@
             android:name="mode"
             app:argType="string"
             android:defaultValue="email" />
-        <action
-            android:id="@+id/action_enterChangeEmailDialogFragment_to_changeEmailConfNewDialogFragment"
-            app:destination="@id/changeEmailConfNewDialogFragment" />
-    </dialog>
-
-    <dialog
-        android:id="@+id/changeEmailConfNewDialogFragment"
-        android:name="com.example.samsungproject.Fragment.ChangeEmailConfNewDialogFragment"
-        android:label="Confirm email code">
-        <argument
-            android:name="mode"
-            app:argType="string"
-            android:defaultValue="email" />
-        <argument
-            android:name="resetEmail"
-            app:argType="string"
-            android:defaultValue="" />
     </dialog>
 
 </navigation>
-
