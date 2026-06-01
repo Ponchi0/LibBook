@@ -11,27 +11,42 @@ import androidx.annotation.Nullable;
 public final class UserDatabaseHelper extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "app.db";
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 4;
 
     public static final String TABLE_USERS = "users";
     public static final String COL_NAME = "name";
     public static final String COL_ICON = "icon";
 
     /**
-     * Создаёт helper для работы с локальной SQLite-базой пользователей.
+     * Создаёт помощник для работы с локальной таблицей пользователей.
+     *
+     * @param context контекст приложения
      */
     public UserDatabaseHelper(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     /**
-     * Таблица хранит одну строку профиля текущего пользователя: имя и иконка (без колонки {@code id},
-     * идентификатор аккаунта хранится в {@code SharedPreferences}).
+     * Создаёт таблицу пользователей при первом создании БД.
+     *
+     * @param db экземпляр SQLiteDatabase
      */
     @Override
     public void onCreate(SQLiteDatabase db) {
+        ensureUsersTable(db);
+    }
+
+    /**
+     * Создаёт таблицу пользователей, если она ещё не существует.
+     *
+     * @param db экземпляр SQLiteDatabase или {@code null}
+     */
+    public static void ensureUsersTable(@Nullable SQLiteDatabase db) {
+        if (db == null) {
+            return;
+        }
         db.execSQL(
-                "CREATE TABLE " + TABLE_USERS + " (" +
+                "CREATE TABLE IF NOT EXISTS " + TABLE_USERS + " (" +
                         COL_NAME + " TEXT, " +
                         COL_ICON + " BLOB" +
                         ")"
@@ -39,17 +54,35 @@ public final class UserDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Обновляет схему базы данных при увеличении версии.
+     * Гарантирует наличие таблицы пользователей при открытии БД.
+     *
+     * @param db экземпляр SQLiteDatabase
      */
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
-        onCreate(db);
+    public void onOpen(SQLiteDatabase db) {
+        super.onOpen(db);
+        ensureUsersTable(db);
     }
 
     /**
-     * Заменяет локальный профиль: одна строка с именем и иконкой.
-     * Параметр {@code serverUserId} не сохраняется в таблице (используйте prefs для id сервера).
+     * Обновляет схему БД при повышении версии: таблица пользователей и миграция книг.
+     *
+     * @param db         экземпляр SQLiteDatabase
+     * @param oldVersion предыдущая версия схемы
+     * @param newVersion новая версия схемы
+     */
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        ensureUsersTable(db);
+        BookDatabaseHelper.migrateBooksSchema(db, oldVersion);
+    }
+
+    /**
+     * Сохраняет или заменяет единственную запись текущего пользователя (имя и иконка).
+     *
+     * @param serverUserId идентификатор пользователя на сервере
+     * @param name         отображаемое имя
+     * @param icon         байты аватара
      */
     public void upsertUser(long serverUserId, @Nullable String name, @Nullable byte[] icon) {
         SQLiteDatabase db = getWritableDatabase();
@@ -67,7 +100,10 @@ public final class UserDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Возвращает локальный профиль для отображения; {@code serverUserId} должен совпадать с текущей сессией.
+     * Возвращает локально сохранённые данные пользователя.
+     *
+     * @param serverUserId идентификатор пользователя на сервере
+     * @return строка с именем и иконкой или {@code null}, если записи нет
      */
     @Nullable
     public UserRow getUser(long serverUserId) {
@@ -94,7 +130,10 @@ public final class UserDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Удаляет все строки локального профиля пользователя.
+     * Удаляет все записи пользователей из локальной таблицы.
+     *
+     * @param id идентификатор (не используется, таблица содержит одну запись)
+     * @return количество удалённых строк
      */
     @SuppressWarnings("unused")
     public int deleteUser(long id) {
@@ -103,13 +142,17 @@ public final class UserDatabaseHelper extends SQLiteOpenHelper {
     }
 
     public static final class UserRow {
-        /** Идентификатор пользователя на сервере (из prefs), не из таблицы SQLite. */
+
         public final long id;
         @Nullable public final String name;
         @Nullable public final byte[] icon;
 
         /**
-         * Создаёт объект-строку пользователя, полученную из базы.
+         * Создаёт неизменяемую строку данных пользователя из локальной БД.
+         *
+         * @param id   идентификатор пользователя
+         * @param name имя
+         * @param icon байты аватара
          */
         public UserRow(long id, @Nullable String name, @Nullable byte[] icon) {
             this.id = id;

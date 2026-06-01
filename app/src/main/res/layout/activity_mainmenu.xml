@@ -8,7 +8,7 @@
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/topAppBar"
         android:layout_width="0dp"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="@dimen/top_app_bar_height"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -25,40 +25,59 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:gravity="start|center_vertical"
                 android:hint="Поиск"
-                android:minHeight="48dp"
+                android:minHeight="36dp"
                 android:singleLine="true"
                 android:inputType="text"
                 android:imeOptions="actionSearch"
                 android:drawableStart="@android:drawable/ic_menu_search"
+                android:drawableTint="@color/text_primary"
                 android:drawablePadding="8dp"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
-                android:background="@android:drawable/editbox_background"
-                android:textColor="@color/black"
+                android:background="@drawable/bg_search_field"
+                android:textColor="@color/text_primary"
+                android:textColorHint="?android:attr/textColorHint"
                 tools:ignore="TouchTargetSizeCheck" />
 
-            <com.google.android.material.button.MaterialButton
+            <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/btn_UserIcon"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
                 android:layout_gravity="center_vertical"
-                android:contentDescription="User (open info)"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                app:icon="@drawable/icon_null"
-                app:iconTint="?attr/colorOnSurface"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="User (open info)"
+                android:focusable="true"
+                android:scaleType="centerCrop"
+                android:src="@drawable/icon_null"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.UserAvatar"
                 tools:ignore="TouchTargetSizeCheck" />
         </LinearLayout>
     </com.google.android.material.appbar.MaterialToolbar>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/listSearchSuggestions"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:background="@color/surface_elevated"
+        android:elevation="8dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:maxHeight="320dp"
+        app:layout_constraintTop_toBottomOf="@id/topAppBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:listitem="@layout/item_book_row" />
+
     <LinearLayout
         android:id="@+id/centerScroll"
         android:layout_width="0dp"
@@ -66,7 +85,7 @@
         android:orientation="vertical"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
-        app:layout_constraintTop_toBottomOf="@id/topAppBar"
+        app:layout_constraintTop_toBottomOf="@id/listSearchSuggestions"
         app:layout_constraintBottom_toTopOf="@id/bottomAppBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -75,23 +94,28 @@
                 android:layout_height="2dp"
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="12dp"
-                android:background="#D3D3D3" />
+                android:background="@color/divider" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/titlePopular"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.App.MaterialButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Популярное"
+                android:minHeight="0dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
                 android:enabled="false"
                 android:clickable="false"
-                android:textColor="@color/black" />
+                android:textColor="@color/text_primary" />
             <View
                 android:layout_width="match_parent"
                 android:layout_height="2dp"
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="12dp"
-                android:background="#D3D3D3" />
-            <!-- BORDER WRAPPER -->
+                android:background="@color/divider" />
+
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -99,28 +123,41 @@
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/listPopular"
                     android:layout_width="match_parent"
-                    android:layout_height="120dp"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
+                    android:layout_height="168dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
                     android:clipToPadding="false"
-                    tools:listitem="@android:layout/simple_list_item_1" />
+                    tools:listitem="@layout/item_book" />
             </FrameLayout>
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/titleContinueReading"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Продолжить читать"
-                android:enabled="false"
-                android:clickable="false"
-                android:textColor="@color/black" />
             <View
                 android:layout_width="match_parent"
                 android:layout_height="2dp"
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="12dp"
-                android:background="#D3D3D3" />
-            <!-- BORDER WRAPPER -->
+                android:background="@color/divider" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/titleContinueReading"
+                style="@style/Widget.App.MaterialButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Продолжить читать"
+                android:minHeight="0dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:enabled="false"
+                android:clickable="false"
+                android:textColor="@color/text_primary" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
+                android:background="@color/divider" />
+
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -128,27 +165,40 @@
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/listContinueReading"
                     android:layout_width="match_parent"
-                    android:layout_height="120dp"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
+                    android:layout_height="168dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
                     android:clipToPadding="false"
-                    tools:listitem="@android:layout/simple_list_item_1" />
+                    tools:listitem="@layout/item_book" />
             </FrameLayout>
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/titleNew"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Новые"
-                android:enabled="false"
-                android:clickable="false"
-                android:textColor="@color/black" />
             <View
                 android:layout_width="match_parent"
                 android:layout_height="2dp"
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="12dp"
-                android:background="#D3D3D3" />
+                android:background="@color/divider" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/titleNew"
+                style="@style/Widget.App.MaterialButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Новые"
+                android:minHeight="0dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:enabled="false"
+                android:clickable="false"
+                android:textColor="@color/text_primary" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
+                android:background="@color/divider" />
 
             <FrameLayout
                 android:layout_width="match_parent"
@@ -159,10 +209,11 @@
                     android:id="@+id/listNew"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
+                    android:paddingTop="6dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
                     android:clipToPadding="false"
-                    tools:listitem="@android:layout/simple_list_item_1" />
+                    tools:listitem="@layout/item_book_row" />
             </FrameLayout>
     </LinearLayout>
     <com.google.android.material.bottomappbar.BottomAppBar
@@ -178,63 +229,87 @@
         tools:ignore="BottomAppBar">
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="@dimen/bottom_app_bar_height"
             android:orientation="horizontal"
             android:gravity="center"
             android:paddingStart="0dp"
             android:paddingEnd="0dp">
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_mmMarkbooks"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.App.MaterialButton"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1.4"
-                android:text="Закладки "
+                android:text="Закладки"
+                android:textSize="10sp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
-                android:textColor="@color/black"
-                app:icon="@android:drawable/btn_star_big_off"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:textColor="@color/text_primary"
+                app:icon="@drawable/ic_bookmark"
+                app:iconTint="@color/text_primary"
+                app:iconSize="24dp"
                 app:iconGravity="textTop"
-                app:iconPadding="4dp" />
+                app:iconPadding="4dp"
+                tools:ignore="TouchTargetSizeCheck" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_mmCatalog"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.App.MaterialButton"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1.2"
                 android:text="Каталог"
+                android:textSize="10sp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
-                android:textColor="@color/black"
-                app:icon="@android:drawable/ic_menu_sort_by_size"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:textColor="@color/text_primary"
+                app:icon="@drawable/ic_catalog"
+                app:iconTint="@color/text_primary"
+                app:iconSize="20dp"
                 app:iconGravity="textTop"
-                app:iconPadding="4dp" />
+                app:iconPadding="4dp"
+                tools:ignore="TouchTargetSizeCheck" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_mmMainMenu"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.App.MaterialButton"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1.2"
                 android:text="Главная"
+                android:textSize="10sp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
-                android:textColor="@color/black"
-                app:icon="@android:drawable/ic_menu_manage"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:textColor="@color/text_primary"
+                app:icon="@drawable/ic_home"
+                app:iconTint="@color/text_primary"
+                app:iconSize="20dp"
                 app:iconGravity="textTop"
-                app:iconPadding="4dp" />
+                app:iconPadding="4dp"
+                tools:ignore="TouchTargetSizeCheck" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_mmGeneral"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.App.MaterialButton"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1.2"
-                android:text="Общее"
+                android:text="@string/nav_bottom_menu"
+                android:textSize="10sp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
-                android:textColor="@color/black"
-                app:icon="@android:drawable/ic_menu_info_details"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:textColor="@color/text_primary"
+                app:icon="@drawable/ic_general"
+                app:iconTint="@color/text_primary"
+                app:iconSize="20dp"
                 app:iconGravity="textTop"
-                app:iconPadding="4dp" />
+                app:iconPadding="4dp"
+                tools:ignore="TouchTargetSizeCheck" />
         </LinearLayout>
     </com.google.android.material.bottomappbar.BottomAppBar>
 </androidx.constraintlayout.widget.ConstraintLayout>

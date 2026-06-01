@@ -2,9 +2,36 @@
 <resources>
     <string-array name="book_tags">
         <item>Фантастика</item>
+        <item>Фэнтези</item>
+        <item>Триллер</item>
         <item>Детектив</item>
         <item>Роман</item>
+        <item>Исторический роман</item>
+        <item>Психология саморазвитие</item>
+        <item>Ужасы и мистика</item>
+        <item>Антиутопия</item>
+        <item>Приключения</item>
+        <item>Боевик</item>
         <item>Наука</item>
         <item>Бизнес</item>
+        <item>Медицина</item>
+        <item>Постапокалипсис</item>
+        <item>Юмор</item>
+        <item>Ранобэ</item>
+        <item>Мифология</item>
+        <item>Искусство</item>
+    </string-array>
+
+    <string-array name="book_ratings">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
     </string-array>
 </resources>

@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Samsung Project"
+rootProject.name = "LibBook"
 include(":app")

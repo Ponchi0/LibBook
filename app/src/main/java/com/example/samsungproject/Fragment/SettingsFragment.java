@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.samsungproject.R;
+import com.example.samsungproject.util.SessionHelper;
 import com.google.android.material.button.MaterialButton;
 
 public class SettingsFragment extends Fragment {
@@ -18,14 +19,17 @@ public class SettingsFragment extends Fragment {
     private static final String MODE_NAME = "name";
 
     /**
-     * Создаёт фрагмент настроек и привязывает разметку экрана.
+     * Создаёт фрагмент экрана настроек.
      */
     public SettingsFragment() {
         super(R.layout.settings);
     }
 
     /**
-     * Настраивает кнопки настроек и запускает нужные диалоги/экраны через Navigation.
+     * Настраивает кнопки возврата и перехода к смене email, пароля, имени и аватара.
+     *
+     * @param view               корневое представление фрагмента
+     * @param savedInstanceState сохранённое состояние или {@code null}
      */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -36,6 +40,10 @@ public class SettingsFragment extends Fragment {
 
         MaterialButton btnChangeEmail = view.findViewById(R.id.btnChangeEmail);
         btnChangeEmail.setOnClickListener(v -> {
+            if (!SessionHelper.isLoggedIn(requireContext())) {
+                SessionHelper.showLoginRequiredToast(requireContext());
+                return;
+            }
             Bundle args = new Bundle();
             args.putString(ARG_MODE, MODE_EMAIL);
             NavHostFragment.findNavController(this)
@@ -64,4 +72,3 @@ public class SettingsFragment extends Fragment {
                         .navigate(R.id.action_settingsFragment_to_uploadImageFragment));
     }
 }
-

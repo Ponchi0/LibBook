@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_on_light">#FF000000</color>
+    <color name="icon_primary">#FFFFFFFF</color>
+    <color name="stroke_primary">#FFE0E0E0</color>
+    <color name="surface_elevated">#FF2C2C2C</color>
+    <color name="divider">#44FFFFFF</color>
+</resources>

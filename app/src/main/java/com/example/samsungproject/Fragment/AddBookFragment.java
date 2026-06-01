@@ -1,8 +1,12 @@
 package com.example.samsungproject.Fragment;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 import android.view.View;
@@ -15,9 +19,11 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.samsungproject.R;
-import com.example.samsungproject.net.SamsungApiClient;
+import com.example.samsungproject.net.ApiConfig;
+import com.example.samsungproject.net.LibBookApiClient;
+import com.example.samsungproject.util.BookTextExtractor;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -25,11 +31,20 @@ import org.json.JSONArray;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class AddBookFragment extends Fragment {
+
+    private static final String TAG = "AddBookFragment";
+    private static final int ICON_MAX_SIDE_PX = 1280;
+    private static final int ICON_JPEG_QUALITY = 88;
+
+    private static final String PREFS_NAME = "user_prefs";
+    private static final String KEY_SERVER_USER_ID = "server_user_id";
 
     private final Executor executor = Executors.newSingleThreadExecutor();
 
@@ -38,13 +53,17 @@ public class AddBookFragment extends Fragment {
 
     @Nullable private String iconDataUrl;
     @Nullable private String bookText;
-    @Nullable private String textFileBase64;
-    @Nullable private String textFileMime;
 
+    @Nullable private String[] allTags;
+    @Nullable private boolean[] checkedTags;
+    @NonNull private final ArrayList<String> selectedTags = new ArrayList<>();
+
+    /** Создаёт экземпляр фрагмента добавления книги. */
     public AddBookFragment() {
         super(R.layout.add_book);
     }
 
+    /** Регистрирует обработчики выбора обложки и текстового файла. */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +71,7 @@ public class AddBookFragment extends Fragment {
         pickTextLauncher = registerForActivityResult(new ActivityResultContracts.OpenDocument(), this::onTextPicked);
     }
 
+    /** Настраивает форму добавления книги и обработчики кнопок. */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -67,31 +87,32 @@ public class AddBookFragment extends Fragment {
 
         TextInputLayout tilName = view.findViewById(R.id.tilBookName);
         TextInputLayout tilDescription = view.findViewById(R.id.tilBookDescription);
+        TextInputLayout tilPassword = view.findViewById(R.id.tilBookPassword);
         TextInputEditText etName = view.findViewById(R.id.etBookName);
         TextInputEditText etDescription = view.findViewById(R.id.etBookDescription);
-        MaterialAutoCompleteTextView actTags = view.findViewById(R.id.actBookTags);
+        TextInputEditText etPassword = view.findViewById(R.id.etBookPassword);
+        TextInputEditText actTags = view.findViewById(R.id.actBookTags);
 
-        ArrayAdapter<CharSequence> tagsAdapter = ArrayAdapter.createFromResource(
-                requireContext(),
-                R.array.book_tags,
-                android.R.layout.simple_list_item_1
-        );
-        actTags.setAdapter(tagsAdapter);
+        if (allTags == null) {
+            allTags = requireContext().getResources().getStringArray(R.array.book_tags);
+        }
+        if (checkedTags == null) {
+            checkedTags = new boolean[allTags.length];
+        }
+        actTags.setOnClickListener(v -> showTagsDialog(actTags));
 
         btnPickIcon.setOnClickListener(v -> pickImageLauncher.launch("image/*"));
-        btnPickText.setOnClickListener(v -> pickTextLauncher.launch(new String[]{
-                "text/plain",
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                "application/msword"
-        }));
+        btnPickText.setOnClickListener(v ->
+                pickTextLauncher.launch(BookTextExtractor.PICK_TEXT_MIME_TYPES));
 
         btnConfirm.setOnClickListener(v -> {
             tilName.setError(null);
             tilDescription.setError(null);
+            tilPassword.setError(null);
 
             String name = text(etName);
             String description = text(etDescription);
-            String tag = actTags.getText() != null ? actTags.getText().toString().trim() : "";
+            String passwordbook = text(etPassword);
 
             if (name.isEmpty()) {
                 tilName.setError(getString(R.string.field_required));
@@ -101,44 +122,55 @@ public class AddBookFragment extends Fragment {
                 tilDescription.setError(getString(R.string.field_required));
                 return;
             }
+            if (passwordbook.isEmpty()) {
+                tilPassword.setError(getString(R.string.field_required));
+                return;
+            }
             if (iconDataUrl == null || iconDataUrl.trim().isEmpty()) {
                 Toast.makeText(requireContext(), R.string.add_book_err_pick_icon, Toast.LENGTH_SHORT).show();
                 return;
             }
             if (bookText == null || bookText.trim().isEmpty()) {
-                if (textFileBase64 == null || textFileBase64.trim().isEmpty()) {
-                    Toast.makeText(requireContext(), R.string.add_book_err_pick_text, Toast.LENGTH_SHORT).show();
-                    return;
-                }
+                Toast.makeText(requireContext(), R.string.add_book_err_pick_text, Toast.LENGTH_SHORT).show();
+                return;
             }
-            if (tag.isEmpty()) {
+            if (selectedTags.isEmpty()) {
                 Toast.makeText(requireContext(), R.string.add_book_err_tags, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            long userId = prefs.getLong(KEY_SERVER_USER_ID, -1L);
+            if (userId < 0L) {
+                Toast.makeText(requireContext(), R.string.add_book_err_login, Toast.LENGTH_SHORT).show();
                 return;
             }
 
             btnConfirm.setEnabled(false);
             Context appCtx = requireContext().getApplicationContext();
-            String baseUrl = getString(R.string.api_base_url);
+            String baseUrl = ApiConfig.baseUrl(requireContext().getApplicationContext());
             String finalName = name;
             String finalDescription = description;
             String finalIcon = iconDataUrl;
-            String finalText = bookText;
-            String finalTextFileBase64 = textFileBase64;
-            String finalTextFileMime = textFileMime;
+            long finalUserId = userId;
+            String finalText = (bookText != null && !bookText.trim().isEmpty()) ? bookText : null;
+            String finalPassword = passwordbook;
 
             executor.execute(() -> {
                 try {
                     JSONArray tags = new JSONArray();
-                    tags.put(tag);
-                    SamsungApiClient.HttpResult r = SamsungApiClient.postBook(
+                    for (String t : selectedTags) {
+                        tags.put(t);
+                    }
+                    LibBookApiClient.HttpResult r = LibBookApiClient.postBook(
                             baseUrl,
                             finalName,
                             finalDescription,
+                            finalText,
                             finalIcon,
                             tags,
-                            finalText,
-                            finalTextFileBase64,
-                            finalTextFileMime
+                            finalUserId,
+                            finalPassword
                     );
                     requireActivity().runOnUiThread(() -> {
                         if (!isAdded()) return;
@@ -148,20 +180,58 @@ public class AddBookFragment extends Fragment {
                             NavHostFragment.findNavController(AddBookFragment.this)
                                     .navigate(R.id.action_addBookFragment_to_generalFragment);
                         } else {
-                            Toast.makeText(requireContext(), R.string.add_book_err_server, Toast.LENGTH_SHORT).show();
+                            String detail = r.body != null && !r.body.isEmpty() ? r.body : "";
+                            Toast.makeText(requireContext(),
+                                    getString(R.string.add_book_err_server) + detail,
+                                    Toast.LENGTH_LONG).show();
                         }
                     });
                 } catch (Exception e) {
+                    Log.e(TAG, "postBook failed, baseUrl=" + baseUrl, e);
                     requireActivity().runOnUiThread(() -> {
                         if (!isAdded()) return;
                         btnConfirm.setEnabled(true);
-                        Toast.makeText(appCtx, R.string.register_network_error, Toast.LENGTH_SHORT).show();
+                        String msg = e.getMessage() != null ? e.getMessage() : "";
+                        if (msg.contains("timed out")) {
+                            Toast.makeText(appCtx, R.string.add_book_err_timeout, Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(appCtx, R.string.register_network_error, Toast.LENGTH_SHORT).show();
+                        }
                     });
                 }
             });
         });
     }
 
+    /** Открывает диалог множественного выбора тегов книги. */
+    private void showTagsDialog(@NonNull TextInputEditText actTags) {
+        if (allTags == null || checkedTags == null) {
+            return;
+        }
+        boolean[] tmpChecked = Arrays.copyOf(checkedTags, checkedTags.length);
+        List<String> tmpSelected = new ArrayList<>(selectedTags);
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.add_book_hint_tags)
+                .setMultiChoiceItems(allTags, tmpChecked, (dialog, which, isChecked) -> {
+                    String tag = allTags[which];
+                    if (isChecked) {
+                        if (!tmpSelected.contains(tag)) tmpSelected.add(tag);
+                    } else {
+                        tmpSelected.remove(tag);
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    checkedTags = tmpChecked;
+                    selectedTags.clear();
+                    selectedTags.addAll(tmpSelected);
+                    actTags.setText(String.join(", ", selectedTags));
+                })
+                .show();
+    }
+
+    /** Обрабатывает выбранное изображение обложки и сохраняет его в формате data URL. */
     private void onImagePicked(@Nullable Uri uri) {
         if (uri == null) return;
         Context ctx = requireContext();
@@ -171,15 +241,12 @@ public class AddBookFragment extends Fragment {
                     toastMain(ctx, R.string.upload_image_read_error);
                     return;
                 }
-                byte[] bytes = readAllBytes(in);
+                byte[] bytes = readScaledIconBytes(readAllBytes(in));
                 if (bytes.length == 0) {
                     toastMain(ctx, R.string.upload_image_empty);
                     return;
                 }
-                String mime = ctx.getContentResolver().getType(uri);
-                if (mime == null || mime.trim().isEmpty()) {
-                    mime = "image/jpeg";
-                }
+                String mime = "image/jpeg";
                 String b64 = java.util.Base64.getEncoder().encodeToString(bytes);
                 iconDataUrl = "data:" + mime + ";base64," + b64;
                 toastMain(ctx, R.string.upload_image_success);
@@ -189,68 +256,88 @@ public class AddBookFragment extends Fragment {
         });
     }
 
+    /** Обрабатывает выбранный текстовый файл и извлекает из него текст книги. */
     private void onTextPicked(@Nullable Uri uri) {
-        if (uri == null) return;
+        if (uri == null) {
+            return;
+        }
         Context ctx = requireContext();
-        executor.execute(() -> {
-            try {
-                String mime = ctx.getContentResolver().getType(uri);
-                String nameGuess = (uri.getLastPathSegment() != null) ? uri.getLastPathSegment() : "";
-                String lower = nameGuess.toLowerCase(Locale.ROOT);
+        try {
+            ctx.getContentResolver().takePersistableUriPermission(
+                    uri,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+        } catch (Exception ignored) {
 
-                String extracted;
-                if ("text/plain".equals(mime) || lower.endsWith(".txt")) {
-                    extracted = readTextUtf8(ctx, uri);
-                    if (extracted == null || extracted.trim().isEmpty()) {
-                        toastMain(ctx, R.string.upload_image_empty);
-                        return;
-                    }
-                    bookText = extracted;
-                    textFileBase64 = null;
-                    textFileMime = null;
-                    toastMain(ctx, R.string.add_book_add_text);
-                    return;
-                } else if ("application/vnd.openxmlformats-officedocument.wordprocessingml.document".equals(mime) || lower.endsWith(".docx")) {
-                    byte[] bytes = readBytesFromUri(ctx, uri);
-                    if (bytes.length == 0) {
-                        toastMain(ctx, R.string.upload_image_empty);
-                        return;
-                    }
-                    textFileBase64 = java.util.Base64.getEncoder().encodeToString(bytes);
-                    textFileMime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-                    bookText = null;
-                    toastMain(ctx, R.string.add_book_add_text);
-                    return;
-                } else if ("application/msword".equals(mime) || lower.endsWith(".doc")) {
-                    byte[] bytes = readBytesFromUri(ctx, uri);
-                    if (bytes.length == 0) {
-                        toastMain(ctx, R.string.upload_image_empty);
-                        return;
-                    }
-                    textFileBase64 = java.util.Base64.getEncoder().encodeToString(bytes);
-                    textFileMime = "application/msword";
-                    bookText = null;
-                    toastMain(ctx, R.string.add_book_add_text);
-                    return;
-                } else {
-                    toastMain(ctx, R.string.add_book_err_bad_file);
+        }
+        executor.execute(() -> {
+            BookTextExtractor.Result result = BookTextExtractor.extract(ctx, uri);
+            requireActivity().runOnUiThread(() -> {
+                if (!isAdded()) {
                     return;
                 }
-            } catch (Exception e) {
-                toastMain(ctx, R.string.add_book_err_bad_file);
-            }
+                switch (result.status) {
+                    case OK:
+                        bookText = result.text;
+                        Toast.makeText(ctx, R.string.add_book_add_text, Toast.LENGTH_SHORT).show();
+                        break;
+                    case HAS_IMAGES:
+                        bookText = null;
+                        Toast.makeText(ctx, R.string.add_book_err_images_in_file, Toast.LENGTH_LONG).show();
+                        break;
+                    case EMPTY:
+                        bookText = null;
+                        Toast.makeText(ctx, R.string.upload_image_empty, Toast.LENGTH_SHORT).show();
+                        break;
+                    case UNSUPPORTED:
+                        bookText = null;
+                        Toast.makeText(ctx, R.string.add_book_err_bad_file, Toast.LENGTH_SHORT).show();
+                        break;
+                    default:
+                        bookText = null;
+                        Toast.makeText(ctx, R.string.add_book_err_bad_file, Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            });
         });
     }
 
+    /** Показывает короткое уведомление в главном потоке. */
     private void toastMain(@NonNull Context ctx, int resId) {
         requireActivity().runOnUiThread(() -> Toast.makeText(ctx, resId, Toast.LENGTH_SHORT).show());
     }
 
+    /** Возвращает обрезанный текст из поля ввода или пустую строку. */
     private static String text(@Nullable TextInputEditText et) {
         if (et == null || et.getText() == null) return "";
         return et.getText().toString().trim();
     }
 
+
+    /** Масштабирует изображение обложки и сжимает его в JPEG. */
+    @NonNull
+    private static byte[] readScaledIconBytes(@NonNull byte[] raw) throws Exception {
+        BitmapFactory.Options bounds = new BitmapFactory.Options();
+        bounds.inJustDecodeBounds = true;
+        BitmapFactory.decodeByteArray(raw, 0, raw.length, bounds);
+        int sample = 1;
+        while (bounds.outWidth / sample > ICON_MAX_SIDE_PX
+                || bounds.outHeight / sample > ICON_MAX_SIDE_PX) {
+            sample *= 2;
+        }
+        BitmapFactory.Options decode = new BitmapFactory.Options();
+        decode.inSampleSize = sample;
+        Bitmap bmp = BitmapFactory.decodeByteArray(raw, 0, raw.length, decode);
+        if (bmp == null) {
+            return raw;
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        bmp.compress(Bitmap.CompressFormat.JPEG, ICON_JPEG_QUALITY, out);
+        bmp.recycle();
+        return out.toByteArray();
+    }
+
+    /** Читает все байты из входного потока. */
     private static byte[] readAllBytes(@NonNull InputStream in) throws Exception {
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
         byte[] chunk = new byte[8192];
@@ -261,19 +348,4 @@ public class AddBookFragment extends Fragment {
         return buf.toByteArray();
     }
 
-    private static String readTextUtf8(@NonNull Context ctx, @NonNull Uri uri) throws Exception {
-        try (InputStream in = ctx.getContentResolver().openInputStream(uri)) {
-            if (in == null) return null;
-            byte[] bytes = readAllBytes(in);
-            return new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
-        }
-    }
-
-    private static byte[] readBytesFromUri(@NonNull Context ctx, @NonNull Uri uri) throws Exception {
-        try (InputStream in = ctx.getContentResolver().openInputStream(uri)) {
-            if (in == null) return new byte[0];
-            return readAllBytes(in);
-        }
-    }
 }
-

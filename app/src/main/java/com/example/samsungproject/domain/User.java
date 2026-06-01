@@ -10,11 +10,14 @@ import com.example.samsungproject.R;
 import java.util.Arrays;
 
 public class User {
-    /** Ресурс {@code R.drawable.icon_null} — стандартная иконка пользователя. */
+
     private static final int icon_null = R.drawable.icon_null;
 
     /**
-     * Запасное имя для отображения (ресурс {@code R.string.name_null}).
+     * Возвращает строку-заглушку для имени неавторизованного пользователя.
+     *
+     * @param context контекст для доступа к строковым ресурсам
+     * @return локализованное имя по умолчанию
      */
     @NonNull
     public static String getName_null(@NonNull Context context) {
@@ -22,7 +25,9 @@ public class User {
     }
 
     /**
-     * Ресурс стандартной иконки пользователя (значение {@link #icon_null}).
+     * Возвращает идентификатор ресурса иконки-заглушки пользователя.
+     *
+     * @return id drawable-ресурса
      */
     public static int getIcon_null() {
         return icon_null;
@@ -35,7 +40,13 @@ public class User {
     @Nullable private byte[] icon;
 
     /**
-     * Создаёт объект пользователя с переданными полями.
+     * Создаёт объект пользователя с указанными полями.
+     *
+     * @param id       идентификатор пользователя
+     * @param email    адрес электронной почты
+     * @param password пароль
+     * @param name     отображаемое имя
+     * @param icon     байты аватара
      */
     public User(long id, @Nullable String email, @Nullable String password, @Nullable String name, @Nullable byte[] icon) {
         this.id = id;
@@ -47,13 +58,17 @@ public class User {
 
     /**
      * Возвращает идентификатор пользователя.
+     *
+     * @return идентификатор
      */
     public long getId() {
         return id;
     }
 
     /**
-     * Возвращает email пользователя (может быть null).
+     * Возвращает адрес электронной почты пользователя.
+     *
+     * @return email или {@code null}
      */
     @Nullable
     public String getEmail() {
@@ -61,7 +76,9 @@ public class User {
     }
 
     /**
-     * Возвращает пароль пользователя (может быть null).
+     * Возвращает пароль пользователя.
+     *
+     * @return пароль или {@code null}
      */
     @Nullable
     public String getPassword() {
@@ -69,7 +86,9 @@ public class User {
     }
 
     /**
-     * Возвращает имя пользователя (может быть null).
+     * Возвращает отображаемое имя пользователя.
+     *
+     * @return имя или {@code null}
      */
     @Nullable
     public String getName() {
@@ -77,7 +96,10 @@ public class User {
     }
 
     /**
-     * Имя для отображения: своё или значение {@link #getName_null(Context)}.
+     * Возвращает имя для отображения: заданное имя или заглушку по умолчанию.
+     *
+     * @param context контекст для строковых ресурсов
+     * @return имя пользователя для UI
      */
     @NonNull
     public String getDisplayName(@NonNull Context context) {
@@ -85,7 +107,9 @@ public class User {
     }
 
     /**
-     * Возвращает копию  иконки пользователя (может быть null).
+     * Возвращает копию байтов аватара пользователя.
+     *
+     * @return байты изображения или {@code null}
      */
     @Nullable
     public byte[] getIcon() {
@@ -93,7 +117,9 @@ public class User {
     }
 
     /**
-     * Изменяет email пользователя.
+     * Изменяет адрес электронной почты пользователя.
+     *
+     * @param newEmail новый email
      */
     public void changeEmail(@Nullable String newEmail) {
         this.email = newEmail;
@@ -101,20 +127,26 @@ public class User {
 
     /**
      * Изменяет пароль пользователя.
+     *
+     * @param newPassword новый пароль
      */
     public void changePassword(@Nullable String newPassword) {
         this.password = newPassword;
     }
 
     /**
-     * Изменяет имя пользователя.
+     * Изменяет отображаемое имя пользователя.
+     *
+     * @param newName новое имя
      */
     public void changeName(@Nullable String newName) {
         this.name = newName;
     }
 
     /**
-     * Изменяет иконку пользователя (сохраняет защитную копию байтов).
+     * Изменяет аватар пользователя.
+     *
+     * @param newIcon новые байты изображения
      */
     public void changeIcon(@Nullable byte[] newIcon) {
         this.icon = (newIcon != null) ? Arrays.copyOf(newIcon, newIcon.length) : null;

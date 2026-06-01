@@ -23,6 +23,8 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            // Подпись debug-ключом: APK можно ставить вручную (Telegram/USB). Для Play Store — свой keystore.
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -35,6 +37,27 @@ android {
     }
 }
 
+afterEvaluate {
+    listOf("assembleRelease", "assembleDebug").forEach { taskName ->
+        tasks.named(taskName).configure {
+            doLast {
+                val buildType = if (taskName.endsWith("Release")) "release" else "debug"
+                val apkDir = layout.buildDirectory.get().asFile.resolve("outputs/apk/$buildType")
+                val source = apkDir.listFiles()
+                    ?.filter { it.isFile && it.extension.equals("apk", true) }
+                    ?.maxByOrNull { it.lastModified() }
+                    ?: return@doLast
+                val fileName = if (buildType == "release") "LibBook.apk" else "LibBook-debug.apk"
+                val outDir = rootProject.layout.projectDirectory.dir("apk").asFile
+                outDir.mkdirs()
+                val target = File(outDir, fileName)
+                source.copyTo(target, overwrite = true)
+                logger.lifecycle("LibBook APK: ${target.absolutePath}")
+            }
+        }
+    }
+}
+
 dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
@@ -43,6 +66,8 @@ dependencies {
     implementation(libs.recyclerview)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+    implementation(libs.android.image.cropper)
+    implementation(libs.pdfbox.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

@@ -18,7 +18,9 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.example.samsungproject.LocalDB.UserDatabaseHelper;
 import com.example.samsungproject.R;
 import com.example.samsungproject.domain.User;
-import com.example.samsungproject.net.SamsungApiClient;
+import com.example.samsungproject.net.ApiConfig;
+import com.example.samsungproject.net.LibBookApiClient;
+import com.example.samsungproject.util.BookmarkSyncHelper;
 import com.example.samsungproject.util.UserResponseParser;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -39,11 +41,21 @@ public class RegistrationFragment extends Fragment {
 
     private final Executor executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private volatile boolean submitInProgress;
 
+    /**
+     * Создаёт фрагмент регистрации нового пользователя.
+     */
     public RegistrationFragment() {
         super(R.layout.registration);
     }
 
+    /**
+     * Настраивает форму регистрации и отправку данных на сервер.
+     *
+     * @param view               корневое представление фрагмента
+     * @param savedInstanceState сохранённое состояние или {@code null}
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -57,7 +69,7 @@ public class RegistrationFragment extends Fragment {
         MaterialButton btnSubmit = view.findViewById(R.id.btnRegistrationSubmit);
         MaterialButton btnCancel = view.findViewById(R.id.btnRegistrationCancel);
 
-        btnCancel.setOnClickListener(v -> NavHostFragment.findNavController(this).navigateUp());
+        btnCancel.setOnClickListener(v -> navigateBackSafely());
 
         btnSubmit.setOnClickListener(v -> {
             tilEmail.setError(null);
@@ -86,14 +98,18 @@ public class RegistrationFragment extends Fragment {
             }
 
             btnSubmit.setEnabled(false);
-            String baseUrl = getString(R.string.api_base_url);
+            submitInProgress = true;
             Context ctx = requireContext().getApplicationContext();
+            String baseUrl = ApiConfig.baseUrl(ctx);
 
             executor.execute(() -> {
                 try {
-                    SamsungApiClient.HttpResult lookup = SamsungApiClient.getUserByEmail(baseUrl, email);
+                    if (!submitInProgress) {
+                        return;
+                    }
+                    LibBookApiClient.HttpResult lookup = LibBookApiClient.getUserByEmail(baseUrl, email);
                     if (lookup.statusCode == 200) {
-                        mainHandler.post(() -> {
+                        postUi(() -> {
                             btnSubmit.setEnabled(true);
                             tilEmail.setError(getString(R.string.register_email_taken));
                             Toast.makeText(requireContext(), R.string.register_email_taken, Toast.LENGTH_SHORT).show();
@@ -101,16 +117,41 @@ public class RegistrationFragment extends Fragment {
                         return;
                     }
                     if (lookup.statusCode != 404) {
-                        mainHandler.post(() -> {
+                        postUi(() -> {
                             btnSubmit.setEnabled(true);
                             Toast.makeText(requireContext(), R.string.register_server_lookup_failed, Toast.LENGTH_SHORT).show();
                         });
                         return;
                     }
 
-                    SamsungApiClient.HttpResult create = SamsungApiClient.postRegisterUser(baseUrl, email, name, password);
+                    LibBookApiClient.HttpResult nameLookup = LibBookApiClient.getUserByName(baseUrl, name);
+                    if (LibBookApiClient.isUserNameTakenByOther(nameLookup, -1L)) {
+                        postUi(() -> {
+                            btnSubmit.setEnabled(true);
+                            tilName.setError(getString(R.string.register_name_taken));
+                            Toast.makeText(requireContext(), R.string.register_name_taken, Toast.LENGTH_SHORT).show();
+                        });
+                        return;
+                    }
+                    if (nameLookup.statusCode != 404) {
+                        postUi(() -> {
+                            btnSubmit.setEnabled(true);
+                            Toast.makeText(requireContext(), R.string.register_server_lookup_failed, Toast.LENGTH_SHORT).show();
+                        });
+                        return;
+                    }
+
+                    LibBookApiClient.HttpResult create = LibBookApiClient.postRegisterUser(baseUrl, email, name, password);
+                    if (LibBookApiClient.isNameAlreadyExistsError(create)) {
+                        postUi(() -> {
+                            btnSubmit.setEnabled(true);
+                            tilName.setError(getString(R.string.register_name_taken));
+                            Toast.makeText(requireContext(), R.string.register_name_taken, Toast.LENGTH_SHORT).show();
+                        });
+                        return;
+                    }
                     if (create.statusCode != 200 && create.statusCode != 201) {
-                        mainHandler.post(() -> {
+                        postUi(() -> {
                             btnSubmit.setEnabled(true);
                             Toast.makeText(requireContext(), R.string.register_create_failed, Toast.LENGTH_SHORT).show();
                         });
@@ -120,7 +161,7 @@ public class RegistrationFragment extends Fragment {
                     JSONObject user = new JSONObject(create.body);
                     long userId = user.optLong("id", -1L);
                     if (userId < 0) {
-                        mainHandler.post(() -> {
+                        postUi(() -> {
                             btnSubmit.setEnabled(true);
                             Toast.makeText(requireContext(), R.string.register_create_failed, Toast.LENGTH_SHORT).show();
                         });
@@ -144,23 +185,71 @@ public class RegistrationFragment extends Fragment {
                     UserDatabaseHelper db = new UserDatabaseHelper(ctx);
                     db.upsertUser(userId, resolvedName, iconBytes);
 
-                    mainHandler.post(() -> {
-                        if (!isAdded()) return;
+                    BookmarkSyncHelper.syncAsync(ctx, null);
+
+                    postUi(() -> {
                         btnSubmit.setEnabled(true);
                         Toast.makeText(requireContext(), R.string.register_success, Toast.LENGTH_SHORT).show();
-                        NavHostFragment.findNavController(RegistrationFragment.this).popBackStack();
+                        navigateBackSafely();
                     });
                 } catch (Exception e) {
-                    mainHandler.post(() -> {
-                        if (!isAdded()) return;
+                    String url = baseUrl;
+                    postUi(() -> {
                         btnSubmit.setEnabled(true);
-                        Toast.makeText(requireContext(), R.string.register_network_error, Toast.LENGTH_SHORT).show();
+                        String msg = getString(R.string.register_network_error)
+                                + " (" + url + ")";
+                        Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show();
                     });
                 }
             });
         });
     }
 
+    /**
+     * Останавливает фоновую регистрацию и снимает отложенные колбэки UI при уничтожении представления.
+     */
+    @Override
+    public void onDestroyView() {
+        submitInProgress = false;
+        mainHandler.removeCallbacksAndMessages(null);
+        super.onDestroyView();
+    }
+
+    /**
+     * Выполняет действие в главном потоке, если фрагмент ещё прикреплён к экрану.
+     *
+     * @param action действие для выполнения в UI-потоке
+     */
+    private void postUi(@NonNull Runnable action) {
+        mainHandler.post(() -> {
+            if (!isAdded() || getView() == null) {
+                return;
+            }
+            action.run();
+        });
+    }
+
+    /**
+     * Возвращается на предыдущий экран навигации без падения при отсутствии back stack.
+     */
+    private void navigateBackSafely() {
+        if (!isAdded()) {
+            return;
+        }
+        try {
+            if (!NavHostFragment.findNavController(this).navigateUp()) {
+                NavHostFragment.findNavController(this).popBackStack();
+            }
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    /**
+     * Возвращает обрезанный текст из поля ввода или пустую строку.
+     *
+     * @param et поле ввода или {@code null}
+     * @return текст поля без пробелов по краям
+     */
     private static String text(@Nullable TextInputEditText et) {
         if (et == null || et.getText() == null) return "";
         return et.getText().toString().trim();

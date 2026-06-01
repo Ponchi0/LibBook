@@ -10,11 +10,17 @@ import org.json.JSONObject;
 
 public final class UserResponseParser {
 
+    /**
+     * Приватный конструктор, запрещающий создание экземпляров утилитного класса.
+     */
     private UserResponseParser() {
     }
 
     /**
-     * Декодирует аватар из JSON пользователя ({@code iconBase64} как data URL или {@code icon} в base64).
+     * Декодирует иконку пользователя из JSON-ответа сервера (Base64 или data URL).
+     *
+     * @param user JSON-объект пользователя с полем iconBase64 или icon
+     * @return байты изображения или {@code null}, если иконка отсутствует или не декодируется
      */
     @Nullable
     public static byte[] decodeUserIcon(@Nullable JSONObject user) {

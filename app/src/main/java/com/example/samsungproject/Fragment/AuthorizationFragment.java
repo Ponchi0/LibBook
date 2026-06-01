@@ -18,7 +18,9 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.example.samsungproject.LocalDB.UserDatabaseHelper;
 import com.example.samsungproject.R;
 import com.example.samsungproject.domain.User;
-import com.example.samsungproject.net.SamsungApiClient;
+import com.example.samsungproject.net.ApiConfig;
+import com.example.samsungproject.net.LibBookApiClient;
+import com.example.samsungproject.util.BookmarkSyncHelper;
 import com.example.samsungproject.util.UserResponseParser;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -39,11 +41,14 @@ public class AuthorizationFragment extends Fragment {
 
     private final Executor executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private volatile boolean submitInProgress;
 
+    /** Создаёт экземпляр фрагмента авторизации. */
     public AuthorizationFragment() {
         super(R.layout.authorization);
     }
 
+    /** Настраивает форму входа и обработчики кнопок. */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -55,7 +60,7 @@ public class AuthorizationFragment extends Fragment {
         MaterialButton btnSubmit = view.findViewById(R.id.btnAuthorizationSubmit);
         MaterialButton btnCancel = view.findViewById(R.id.btnAuthorizationCancel);
 
-        btnCancel.setOnClickListener(v -> NavHostFragment.findNavController(this).navigateUp());
+        btnCancel.setOnClickListener(v -> navigateBackSafely());
 
         btnSubmit.setOnClickListener(v -> {
             tilEmail.setError(null);
@@ -78,14 +83,18 @@ public class AuthorizationFragment extends Fragment {
             }
 
             btnSubmit.setEnabled(false);
-            String baseUrl = getString(R.string.api_base_url);
+            submitInProgress = true;
+            String baseUrl = ApiConfig.baseUrl(requireContext().getApplicationContext());
             Context ctx = requireContext().getApplicationContext();
 
             executor.execute(() -> {
                 try {
-                    SamsungApiClient.HttpResult lookup = SamsungApiClient.getUserByEmail(baseUrl, email);
+                    if (!submitInProgress) {
+                        return;
+                    }
+                    LibBookApiClient.HttpResult lookup = LibBookApiClient.getUserByEmail(baseUrl, email);
                     if (lookup.statusCode != 200) {
-                        mainHandler.post(() -> {
+                        postUi(() -> {
                             btnSubmit.setEnabled(true);
                             tilEmail.setError(getString(R.string.login_unknown_email));
                             Toast.makeText(requireContext(), R.string.login_unknown_email, Toast.LENGTH_SHORT).show();
@@ -97,19 +106,19 @@ public class AuthorizationFragment extends Fragment {
                             lookup.body != null && !lookup.body.trim().isEmpty() ? lookup.body : "{}");
                     long userId = user.optLong("id", -1L);
                     if (userId < 0) {
-                        mainHandler.post(() -> {
+                        postUi(() -> {
                             btnSubmit.setEnabled(true);
                             Toast.makeText(requireContext(), R.string.login_unknown_email, Toast.LENGTH_SHORT).show();
                         });
                         return;
                     }
 
-                    SamsungApiClient.HttpResult verify = SamsungApiClient.verifyUserPassword(baseUrl, userId, password);
+                    LibBookApiClient.HttpResult verify = LibBookApiClient.verifyUserPassword(baseUrl, userId, password);
                     JSONObject vBody = new JSONObject(
                             verify.body != null && verify.body.length() > 0 ? verify.body : "{}");
                     boolean ok = verify.statusCode == 200 && vBody.optBoolean("valid", false);
                     if (!ok) {
-                        mainHandler.post(() -> {
+                        postUi(() -> {
                             btnSubmit.setEnabled(true);
                             tilPassword.setError(getString(R.string.login_wrong_password));
                             Toast.makeText(requireContext(), R.string.login_wrong_password, Toast.LENGTH_SHORT).show();
@@ -134,15 +143,15 @@ public class AuthorizationFragment extends Fragment {
                     UserDatabaseHelper db = new UserDatabaseHelper(ctx);
                     db.upsertUser(userId, name, iconBytes);
 
-                    mainHandler.post(() -> {
-                        if (!isAdded()) return;
+                    BookmarkSyncHelper.syncAsync(ctx, null);
+
+                    postUi(() -> {
                         btnSubmit.setEnabled(true);
                         Toast.makeText(requireContext(), R.string.login_success, Toast.LENGTH_SHORT).show();
-                        NavHostFragment.findNavController(AuthorizationFragment.this).popBackStack();
+                        navigateBackSafely();
                     });
                 } catch (Exception e) {
-                    mainHandler.post(() -> {
-                        if (!isAdded()) return;
+                    postUi(() -> {
                         btnSubmit.setEnabled(true);
                         Toast.makeText(requireContext(), R.string.register_network_error, Toast.LENGTH_SHORT).show();
                     });
@@ -151,6 +160,38 @@ public class AuthorizationFragment extends Fragment {
         });
     }
 
+    /** Отменяет незавершённый вход и очищает отложенные задачи UI. */
+    @Override
+    public void onDestroyView() {
+        submitInProgress = false;
+        mainHandler.removeCallbacksAndMessages(null);
+        super.onDestroyView();
+    }
+
+    /** Выполняет действие в главном потоке, если фрагмент ещё активен. */
+    private void postUi(@NonNull Runnable action) {
+        mainHandler.post(() -> {
+            if (!isAdded() || getView() == null) {
+                return;
+            }
+            action.run();
+        });
+    }
+
+    /** Безопасно возвращается на предыдущий экран навигации. */
+    private void navigateBackSafely() {
+        if (!isAdded()) {
+            return;
+        }
+        try {
+            if (!NavHostFragment.findNavController(this).navigateUp()) {
+                NavHostFragment.findNavController(this).popBackStack();
+            }
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    /** Возвращает обрезанный текст из поля ввода или пустую строку. */
     private static String text(@Nullable TextInputEditText et) {
         if (et == null || et.getText() == null) return "";
         return et.getText().toString().trim();

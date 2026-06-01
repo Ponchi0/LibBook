@@ -2,4 +2,14 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="selection_blue">#FF2196F3</color>
+    <color name="delete_row_selected_bg">#FFE3F2FD</color>
+    <color name="delete_account_red">#FFB00020</color>
+
+    <color name="text_primary">@color/black</color>
+    <color name="text_on_light">@color/black</color>
+    <color name="icon_primary">@color/black</color>
+    <color name="stroke_primary">@color/black</color>
+    <color name="surface_elevated">@color/white</color>
+    <color name="divider">#FFD3D3D3</color>
 </resources>
