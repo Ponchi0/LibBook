@@ -61,6 +61,9 @@ public class CatalogFragment extends Fragment {
     @Nullable private boolean[] checkedTags;
     @NonNull private final ArrayList<String> selectedTags = new ArrayList<>();
 
+    private long catalogLoadedAtMs;
+    private static final long CATALOG_CACHE_MS = 300_000L;
+
     /** Создаёт экземпляр фрагмента каталога книг. */
     public CatalogFragment() {
         super(R.layout.activity_catalog);
@@ -129,6 +132,11 @@ public class CatalogFragment extends Fragment {
 
     /** Загружает каталог книг с сервера в фоновом потоке. */
     private void loadBooksFromServer() {
+        long now = System.currentTimeMillis();
+        if (!allBooks.isEmpty() && now - catalogLoadedAtMs < CATALOG_CACHE_MS) {
+            applySearchFilter(searchBar.getText() != null ? searchBar.getText().toString() : "");
+            return;
+        }
         String baseUrl = ApiConfig.baseUrl(requireContext().getApplicationContext());
         executor.execute(() -> {
             try {
@@ -142,6 +150,7 @@ public class CatalogFragment extends Fragment {
                     if (!isAdded()) return;
                     allBooks.clear();
                     allBooks.addAll(parsed);
+                    catalogLoadedAtMs = System.currentTimeMillis();
                     applySearchFilter(searchBar.getText() != null ? searchBar.getText().toString() : "");
                 });
             } catch (Exception e) {

@@ -268,10 +268,10 @@ final class Database implements AutoCloseable {
         }
     }
 
-    /** Возвращает все книги каталога с агрегированными рейтингами. */
+    /** Возвращает краткий список книг каталога (без text и description). */
     JSONArray listBooksWithRatings() throws SQLException {
         String sql = """
-                SELECT b.id, b.name, b.description, b.icon, b.tags, b.text,
+                SELECT b.id, b.name, b.icon, b.tags,
                        AVG(r.rating) AS avg_rating,
                        COUNT(r.rating) AS ratings_count
                 FROM books b
@@ -283,16 +283,16 @@ final class Database implements AutoCloseable {
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                out.put(rowBookWithStats(rs, null));
+                out.put(rowBookListFromStats(rs));
             }
         }
         return out;
     }
 
-    /** Возвращает топ популярных книг по среднему рейтингу с ограничением количества. */
+    /** Возвращает краткий список популярных книг (без text и description). */
     JSONArray listPopularBooks(int limit) throws SQLException {
         String sql = """
-                SELECT b.id, b.name, b.description, b.icon, b.tags, b.text,
+                SELECT b.id, b.name, b.icon, b.tags,
                        AVG(r.rating) AS avg_rating,
                        COUNT(r.rating) AS ratings_count
                 FROM books b
@@ -306,7 +306,7 @@ final class Database implements AutoCloseable {
             ps.setInt(1, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    out.put(rowBookWithStats(rs, null));
+                    out.put(rowBookListFromStats(rs));
                 }
             }
         }
@@ -410,22 +410,19 @@ final class Database implements AutoCloseable {
         }
     }
 
-    /** Возвращает список книг, загруженных указанным пользователем. */
+    /** Возвращает краткий список книг пользователя (без text и description). */
     JSONArray listUploadedBooks(long userId) throws SQLException {
         JSONArray out = new JSONArray();
         try (PreparedStatement ps = conn.prepareStatement(
-                "SELECT id, name, description, icon, tags, text FROM books WHERE uploaded_by_user_id = ? ORDER BY id")) {
+                "SELECT id, name, icon, tags FROM books WHERE uploaded_by_user_id = ? ORDER BY id")) {
             ps.setLong(1, userId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    out.put(HttpUtil.bookJson(
+                    out.put(HttpUtil.bookListJson(
                             rs.getLong("id"),
                             rs.getString("name"),
-                            rs.getString("description"),
                             rs.getString("icon"),
                             rs.getString("tags"),
-                            rs.getString("text"),
-                            null,
                             null,
                             null
                     ));
@@ -562,10 +559,10 @@ final class Database implements AutoCloseable {
         }
     }
 
-    /** Возвращает закладки пользователя с данными книг, отсортированные по дате открытия. */
+    /** Возвращает закладки пользователя без текста книги (только метаданные и обложка). */
     JSONArray listBookmarks(long userId) throws SQLException {
         String sql = """
-                SELECT b.id AS book_id, b.name, b.icon, b.text, ub.last_opened_at
+                SELECT b.id AS book_id, b.name, b.icon, ub.last_opened_at
                 FROM user_bookmarks ub
                 JOIN books b ON b.id = ub.book_id
                 WHERE ub.user_id = ?
@@ -579,9 +576,7 @@ final class Database implements AutoCloseable {
                     JSONObject item = new JSONObject();
                     item.put("bookId", rs.getLong("book_id"));
                     item.put("name", rs.getString("name"));
-                    HttpUtil.putIcon(item, rs.getString("icon"));
-                    String text = rs.getString("text");
-                    item.put("text", text != null ? text : JSONObject.NULL);
+                    HttpUtil.putListIcon(item, rs.getString("icon"));
                     long opened = rs.getLong("last_opened_at");
                     if (!rs.wasNull() && opened > 0) {
                         item.put("lastOpenedAt", opened);
@@ -670,7 +665,25 @@ final class Database implements AutoCloseable {
         );
     }
 
-    /** Преобразует строку результата SQL в JSON-объект книги со статистикой рейтингов. */
+    /** Преобразует строку SQL в краткий JSON книги для списков (с рейтингами). */
+    private JSONObject rowBookListFromStats(ResultSet rs) throws SQLException {
+        double avg = rs.getDouble("avg_rating");
+        if (rs.wasNull()) {
+            avg = Double.NaN;
+        }
+        int count = rs.getInt("ratings_count");
+        Double avgBox = Double.isNaN(avg) ? null : avg;
+        return HttpUtil.bookListJson(
+                rs.getLong("id"),
+                rs.getString("name"),
+                rs.getString("icon"),
+                rs.getString("tags"),
+                avgBox,
+                count
+        );
+    }
+
+    /** Преобразует строку результата SQL в полный JSON книги со статистикой рейтингов. */
     private JSONObject rowBookWithStats(ResultSet rs, Integer myRating) throws SQLException {
         double avg = rs.getDouble("avg_rating");
         if (rs.wasNull()) {

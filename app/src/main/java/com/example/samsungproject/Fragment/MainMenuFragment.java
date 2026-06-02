@@ -47,6 +47,7 @@ public class MainMenuFragment extends Fragment {
     private static final int NEW_BOOKS_LIMIT = 30;
     private static final int POPULAR_BOOKS_LIMIT = 10;
     private static final int SEARCH_SUGGESTIONS_LIMIT = 10;
+    private static final long MAIN_MENU_CACHE_MS = 300_000L;
 
     private final Executor executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -64,6 +65,7 @@ public class MainMenuFragment extends Fragment {
     @Nullable private ShapeableImageView btnUserIcon;
     @Nullable private List<SearchBook> searchAllBooksCache;
     @Nullable private Runnable searchDebounce;
+    private long mainMenuServerLoadedAtMs;
 
     /**
      * Создаёт фрагмент главного меню с поиском и подборками книг.
@@ -164,22 +166,54 @@ public class MainMenuFragment extends Fragment {
     public void onResume() {
         super.onResume();
         refreshUserIcon();
-        loadPopularFromServer();
         loadContinueReading();
-        loadNewFromServer();
-        preloadSearchBooksFromServer();
+        loadMainMenuFromServerIfNeeded();
     }
 
     /**
-     * Загружает полный список книг с сервера для автодополнения поиска.
+     * Загружает подборки и поиск с сервера не чаще одного раза в {@link #MAIN_MENU_CACHE_MS}.
      */
-    private void preloadSearchBooksFromServer() {
+    private void loadMainMenuFromServerIfNeeded() {
+        long now = System.currentTimeMillis();
+        if (mainMenuServerLoadedAtMs > 0
+                && now - mainMenuServerLoadedAtMs < MAIN_MENU_CACHE_MS
+                && !popularBooks.isEmpty()
+                && !newBooks.isEmpty()
+                && searchAllBooksCache != null) {
+            return;
+        }
         String baseUrl = ApiConfig.baseUrl(requireContext().getApplicationContext());
         executor.execute(() -> {
             try {
-                LibBookApiClient.HttpResult r = LibBookApiClient.getBooks(baseUrl);
-                if (r.statusCode != 200) return;
-                searchAllBooksCache = parseSearchBooks(r.body);
+                LibBookApiClient.HttpResult popularR =
+                        LibBookApiClient.getPopularBooks(baseUrl, POPULAR_BOOKS_LIMIT);
+                List<NewBook> popularParsed = popularR.statusCode == 200
+                        ? parseNewBooks(popularR.body) : Collections.emptyList();
+
+                List<NewBook> newParsed = Collections.emptyList();
+                List<SearchBook> searchParsed = Collections.emptyList();
+                LibBookApiClient.HttpResult booksR = LibBookApiClient.getBooks(baseUrl);
+                if (booksR.statusCode == 200) {
+                    newParsed = parseNewBooks(booksR.body);
+                    searchParsed = parseSearchBooks(booksR.body);
+                }
+
+                final List<NewBook> popularFinal = popularParsed;
+                final List<NewBook> newFinal = newParsed;
+                final List<SearchBook> searchFinal = searchParsed;
+                mainHandler.post(() -> {
+                    if (!isAdded()) return;
+                    popularBooks.clear();
+                    popularBooks.addAll(popularFinal);
+                    popularAdapter.notifyDataSetChanged();
+                    newBooks.clear();
+                    newBooks.addAll(newFinal);
+                    newBooksAdapter.notifyDataSetChanged();
+                    searchAllBooksCache = searchFinal;
+                    mainMenuServerLoadedAtMs = System.currentTimeMillis();
+                    updateSearchSuggestions(
+                            searchBar.getText() != null ? searchBar.getText().toString().trim() : "");
+                });
             } catch (Exception ignored) {
             }
         });
@@ -267,29 +301,6 @@ public class MainMenuFragment extends Fragment {
     }
 
     /**
-     * Загружает популярные книги с сервера и обновляет горизонтальный список.
-     */
-    private void loadPopularFromServer() {
-        String baseUrl = ApiConfig.baseUrl(requireContext().getApplicationContext());
-        executor.execute(() -> {
-            try {
-                LibBookApiClient.HttpResult r = LibBookApiClient.getPopularBooks(baseUrl, POPULAR_BOOKS_LIMIT);
-                if (r.statusCode != 200) {
-                    return;
-                }
-                List<NewBook> parsed = parseNewBooks(r.body);
-                mainHandler.post(() -> {
-                    if (!isAdded()) return;
-                    popularBooks.clear();
-                    popularBooks.addAll(parsed);
-                    popularAdapter.notifyDataSetChanged();
-                });
-            } catch (Exception ignored) {
-            }
-        });
-    }
-
-    /**
      * Загружает из локальной базы книги, которые пользователь недавно открывал.
      */
     private void loadContinueReading() {
@@ -298,29 +309,6 @@ public class MainMenuFragment extends Fragment {
             continueReadingBooks.addAll(db.listOpenedBooksByLastOpenedDesc());
         }
         continueReadingAdapter.notifyDataSetChanged();
-    }
-
-    /**
-     * Загружает новые книги с сервера и обновляет вертикальный список.
-     */
-    private void loadNewFromServer() {
-        String baseUrl = ApiConfig.baseUrl(requireContext().getApplicationContext());
-        executor.execute(() -> {
-            try {
-                LibBookApiClient.HttpResult r = LibBookApiClient.getBooks(baseUrl);
-                if (r.statusCode != 200) {
-                    return;
-                }
-                List<NewBook> parsed = parseNewBooks(r.body);
-                mainHandler.post(() -> {
-                    if (!isAdded()) return;
-                    newBooks.clear();
-                    newBooks.addAll(parsed);
-                    newBooksAdapter.notifyDataSetChanged();
-                });
-            } catch (Exception ignored) {
-            }
-        });
     }
 
     /**

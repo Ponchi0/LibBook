@@ -118,16 +118,15 @@ public class MarkbooksFragment extends Fragment {
     }
 
     /**
-     * Синхронизирует закладки с сервером или загружает их из локальной базы при возврате на экран.
+     * Показывает закладки из локальной БД; синхронизация с сервером — не чаще раза в 5 минут.
      */
     @Override
     public void onResume() {
         super.onResume();
-        if (!SessionHelper.isLoggedIn(requireContext())) {
-            loadBookmarksFromLocalDb();
-            return;
+        loadBookmarksFromLocalDb();
+        if (SessionHelper.isLoggedIn(requireContext())) {
+            BookmarkSyncHelper.syncAsync(requireContext(), this::loadBookmarksFromLocalDb);
         }
-        BookmarkSyncHelper.syncAsync(requireContext(), this::loadBookmarksFromLocalDb);
     }
 
     /**

@@ -25,6 +25,8 @@ public final class BookmarkSyncHelper {
 
     private static final String PREFS_NAME = "bookmark_sync_prefs";
     private static final String KEY_PENDING = "pending_push_ids";
+    private static final String KEY_LAST_FULL_SYNC_AT = "last_full_sync_at_ms";
+    private static final long FULL_SYNC_CACHE_MS = 300_000L;
 
     private static final Executor EXECUTOR = Executors.newSingleThreadExecutor();
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
@@ -51,7 +53,13 @@ public final class BookmarkSyncHelper {
         Context app = context.getApplicationContext();
         EXECUTOR.execute(() -> {
             try {
-                syncNow(app);
+                if (shouldSkipFullSync(app)) {
+                    if (!getPendingIds(app).isEmpty()) {
+                        pushPendingOnly(app);
+                    }
+                } else {
+                    syncNow(app);
+                }
             } catch (Exception ignored) {
             } finally {
                 if (onDone != null) {
@@ -59,6 +67,15 @@ public final class BookmarkSyncHelper {
                 }
             }
         });
+    }
+
+    /**
+     * Сбрасывает кэш полной синхронизации (после входа или выхода).
+     *
+     * @param context контекст приложения
+     */
+    public static void invalidateFullSyncCache(@NonNull Context context) {
+        getPendingPrefs(context).edit().remove(KEY_LAST_FULL_SYNC_AT).apply();
     }
 
     /**
@@ -192,7 +209,40 @@ public final class BookmarkSyncHelper {
             applyServerBookmarkItems(db, serverBookmarks);
             db.removeBookmarksExcept(keepIds);
         }
+        recordFullSyncAt(app);
         return true;
+    }
+
+    /**
+     * {@code true}, если полный GET закладок можно не выполнять (кэш 5 минут, нет ожидающих отправки).
+     */
+    private static boolean shouldSkipFullSync(@NonNull Context app) {
+        if (!getPendingIds(app).isEmpty()) {
+            return false;
+        }
+        long last = getPendingPrefs(app).getLong(KEY_LAST_FULL_SYNC_AT, 0L);
+        return last > 0 && System.currentTimeMillis() - last < FULL_SYNC_CACHE_MS;
+    }
+
+    private static void recordFullSyncAt(@NonNull Context app) {
+        getPendingPrefs(app).edit()
+                .putLong(KEY_LAST_FULL_SYNC_AT, System.currentTimeMillis())
+                .apply();
+    }
+
+    /**
+     * Отправляет на сервер только закладки с пометкой «ожидает отправки», без загрузки списка с сервера.
+     */
+    private static void pushPendingOnly(@NonNull Context app) throws Exception {
+        if (!SessionHelper.isLoggedIn(app)) {
+            return;
+        }
+        String baseUrl = ApiConfig.baseUrl(app);
+        long userId = LibBookApiClient.resolveServerUserId(app, baseUrl);
+        if (userId <= 0) {
+            return;
+        }
+        pushPendingBookmarks(app, baseUrl, userId);
     }
 
     /**

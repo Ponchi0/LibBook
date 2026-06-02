@@ -185,6 +185,7 @@ public class RegistrationFragment extends Fragment {
                     UserDatabaseHelper db = new UserDatabaseHelper(ctx);
                     db.upsertUser(userId, resolvedName, iconBytes);
 
+                    BookmarkSyncHelper.invalidateFullSyncCache(ctx);
                     BookmarkSyncHelper.syncAsync(ctx, null);
 
                     postUi(() -> {

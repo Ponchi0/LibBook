@@ -4,14 +4,22 @@ import fi.iki.elonen.NanoHTTPD;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.imageio.ImageIO;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 final class HttpUtil {
+
+    private static final int CATALOG_ICON_MAX_PX = 160;
 
     /** Запрещает создание экземпляров утилитного класса. */
     private HttpUtil() {
@@ -216,6 +224,32 @@ final class HttpUtil {
         return tags.toString();
     }
 
+    /**
+     * Краткий JSON книги для списков: без {@code text} и {@code description}.
+     * Поля: id, name, iconMime, iconBase64, tags, avgRating, ratingsCount.
+     */
+    static JSONObject bookListJson(
+            long id,
+            String name,
+            String icon,
+            String tagsJson,
+            Double avgRating,
+            Integer ratingsCount
+    ) {
+        JSONObject o = new JSONObject();
+        o.put("id", id);
+        o.put("name", name != null ? name : JSONObject.NULL);
+        putListIcon(o, icon);
+        o.put("tags", tagsToJson(tagsJson));
+        if (avgRating != null && !avgRating.isNaN()) {
+            o.put("avgRating", avgRating);
+        }
+        if (ratingsCount != null && ratingsCount > 0) {
+            o.put("ratingsCount", ratingsCount);
+        }
+        return o;
+    }
+
     /** Собирает JSON-объект книги с рейтингами и опциональной оценкой текущего пользователя. */
     static JSONObject bookJson(
             long id,
@@ -257,15 +291,97 @@ final class HttpUtil {
         return o;
     }
 
-    /** Записывает в JSON поля {@code icon} и {@code iconBase64} или null, если иконка пуста. */
+    /**
+     * Обложка для списков: уменьшенный JPEG и только {@code iconBase64} (без дублирования поля {@code icon}).
+     */
+    static void putListIcon(JSONObject o, String icon) {
+        if (icon == null || icon.isBlank()) {
+            o.put("iconBase64", JSONObject.NULL);
+            o.put("iconMime", JSONObject.NULL);
+            return;
+        }
+        String compact = scaleIconForCatalog(icon);
+        o.put("iconBase64", compact);
+        String mime = mimeFromDataUrl(compact);
+        o.put("iconMime", mime != null ? mime : JSONObject.NULL);
+    }
+
+    /** Записывает в JSON поля {@code icon}, {@code iconBase64}, {@code iconMime} или null, если иконка пуста. */
     static void putIcon(JSONObject o, String icon) {
         if (icon == null || icon.isBlank()) {
             o.put("icon", JSONObject.NULL);
             o.put("iconBase64", JSONObject.NULL);
+            o.put("iconMime", JSONObject.NULL);
             return;
         }
         o.put("icon", icon);
         o.put("iconBase64", icon);
+        String mime = mimeFromDataUrl(icon);
+        o.put("iconMime", mime != null ? mime : JSONObject.NULL);
+    }
+
+    /** Уменьшает обложку для каталога и списков (меньший JSON по сети). */
+    static String scaleIconForCatalog(String icon) {
+        if (icon == null || icon.isBlank()) {
+            return icon;
+        }
+        try {
+            byte[] raw = decodeDataUrlBytes(icon);
+            if (raw.length == 0) {
+                return icon;
+            }
+            BufferedImage img = ImageIO.read(new ByteArrayInputStream(raw));
+            if (img == null) {
+                return icon;
+            }
+            BufferedImage scaled = scaleDown(img, CATALOG_ICON_MAX_PX);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ImageIO.write(scaled, "jpg", out);
+            return "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(out.toByteArray());
+        } catch (Exception ignored) {
+            return icon;
+        }
+    }
+
+    private static byte[] decodeDataUrlBytes(String icon) {
+        String b64 = icon.trim();
+        int comma = b64.indexOf(',');
+        if (b64.startsWith("data:") && comma > 0) {
+            b64 = b64.substring(comma + 1).trim();
+        }
+        return Base64.getDecoder().decode(b64);
+    }
+
+    private static BufferedImage scaleDown(BufferedImage src, int maxSide) {
+        int w = src.getWidth();
+        int h = src.getHeight();
+        if (w <= 0 || h <= 0) {
+            return src;
+        }
+        float scale = Math.min(1f, (float) maxSide / Math.max(w, h));
+        if (scale >= 1f) {
+            return src;
+        }
+        int nw = Math.max(1, Math.round(w * scale));
+        int nh = Math.max(1, Math.round(h * scale));
+        BufferedImage out = new BufferedImage(nw, nh, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = out.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.drawImage(src, 0, 0, nw, nh, null);
+        g.dispose();
+        return out;
+    }
+
+    /** Извлекает MIME-тип из data URL обложки ({@code data:image/jpeg;base64,...}). */
+    private static String mimeFromDataUrl(String icon) {
+        if (!icon.startsWith("data:")) {
+            return null;
+        }
+        int semi = icon.indexOf(';');
+        if (semi > 5) {
+            return icon.substring(5, semi);
+        }
+        return null;
     }
 
     /** Разбирает строку как long; при ошибке возвращает значение по умолчанию. */

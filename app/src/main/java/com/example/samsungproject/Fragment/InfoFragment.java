@@ -40,6 +40,7 @@ import com.example.samsungproject.R;
 
 import com.example.samsungproject.domain.User;
 
+import com.example.samsungproject.util.BookmarkSyncHelper;
 import com.example.samsungproject.util.SessionHelper;
 
 import com.google.android.material.button.MaterialButton;
@@ -330,6 +331,8 @@ public class InfoFragment extends Fragment {
             bookDb.clearAllBookmarks();
 
         }
+
+        BookmarkSyncHelper.invalidateFullSyncCache(ctx);
 
         if (showLogoutToast) {
 
